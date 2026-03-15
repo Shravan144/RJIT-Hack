@@ -1,4 +1,5 @@
 import { Package, CheckCircle, XCircle, Tag } from 'lucide-react';
+import { useTranslation } from "react-i18next";
 
 const CATEGORY_BADGE = {
   pesticide:   'bg-red-400/10 border-red-400/20 text-red-400',
@@ -11,6 +12,7 @@ const CATEGORY_BADGE = {
 };
 
 export default function ProductCard({ product, price, inStock }) {
+  const { t } = useTranslation();
   const badge = CATEGORY_BADGE[product.category] || CATEGORY_BADGE.other;
 
   return (
@@ -19,12 +21,12 @@ export default function ProductCard({ product, price, inStock }) {
 
       <div className="flex justify-between items-center">
         <span className={`px-2.5 py-0.5 rounded-full border text-[11px] font-bold capitalize ${badge}`}>
-          {product.category}
+          {t(`productSearch.${product.category}`)}
         </span>
         {inStock !== undefined && (
           <div className={`flex items-center gap-1 text-[11px] font-semibold ${inStock ? 'text-green-400' : 'text-red-400'}`}>
             {inStock ? <CheckCircle size={11} /> : <XCircle size={11} />}
-            {inStock ? 'In Stock' : 'Out of Stock'}
+            {inStock ? t('components.inStock') : t('components.outOfStock')}
           </div>
         )}
       </div>
@@ -37,7 +39,7 @@ export default function ProductCard({ product, price, inStock }) {
       <p className="text-slate-400 text-xs">{product.brand}</p>
 
       {product.active_ingredients && (
-        <p className="text-slate-500 text-[11px] line-clamp-2">AI: {product.active_ingredients}</p>
+        <p className="text-slate-500 text-[11px] line-clamp-2">{t('components.ai')}: {product.active_ingredients}</p>
       )}
 
       <div className="flex justify-between items-center pt-2 border-t border-[hsl(220,14%,20%)] mt-auto">
@@ -47,7 +49,7 @@ export default function ProductCard({ product, price, inStock }) {
           </div>
         )}
         {product.registration_number && (
-          <div className="text-[11px] text-slate-500">Reg: {product.registration_number}</div>
+          <div className="text-[11px] text-slate-500">{t('components.reg')}: {product.registration_number}</div>
         )}
       </div>
     </div>

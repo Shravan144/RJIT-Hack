@@ -1,20 +1,5 @@
 import { AlertTriangle, Clock, CheckCircle, XCircle } from 'lucide-react';
-
-const STATUS_CONFIG = {
-  pending:      { icon: <Clock size={13} />,         cls: 'bg-amber-400/10 border-amber-400/25 text-amber-400',  label: 'Pending' },
-  under_review: { icon: <AlertTriangle size={13} />, cls: 'bg-blue-400/10 border-blue-400/25 text-blue-400',     label: 'Under Review' },
-  verified:     { icon: <CheckCircle size={13} />,   cls: 'bg-green-400/10 border-green-400/25 text-green-400', label: 'Verified' },
-  dismissed:    { icon: <XCircle size={13} />,       cls: 'bg-slate-700/40 border-slate-600/25 text-slate-500', label: 'Dismissed' },
-};
-
-const CATEGORY_LABELS = {
-  fake_product:    'Fake/Adulterated Product',
-  overpricing:     'Overpricing',
-  unlicensed:      'Unlicensed Operation',
-  expired_product: 'Selling Expired Product',
-  wrong_advice:    'Wrong Agronomic Advice',
-  other:           'Other',
-};
+import { useTranslation } from "react-i18next";
 
 const STATUS_BTN = {
   pending:      'hover:border-amber-400 hover:text-amber-400',
@@ -24,6 +9,24 @@ const STATUS_BTN = {
 };
 
 export default function ReportCard({ report, onUpdateStatus }) {
+  const { t } = useTranslation();
+
+  const STATUS_CONFIG = {
+    pending:      { icon: <Clock size={13} />,         cls: 'bg-amber-400/10 border-amber-400/25 text-amber-400',  label: t('adminDashboard.pending') },
+    under_review: { icon: <AlertTriangle size={13} />, cls: 'bg-blue-400/10 border-blue-400/25 text-blue-400',     label: 'Under Review' },
+    verified:     { icon: <CheckCircle size={13} />,   cls: 'bg-green-400/10 border-green-400/25 text-green-400', label: t('adminDashboard.verified') },
+    dismissed:    { icon: <XCircle size={13} />,       cls: 'bg-slate-700/40 border-slate-600/25 text-slate-500', label: 'Dismissed' },
+  };
+
+  const CATEGORY_LABELS = {
+    fake_product:    t('reportFiling.catFake'),
+    overpricing:     t('reportFiling.catOverprice'),
+    unlicensed:      t('reportFiling.catUnlicensed'),
+    expired_product: t('reportFiling.catExpired'),
+    wrong_advice:    t('reportFiling.catWrongAdvice'),
+    other:           t('reportFiling.catOther'),
+  };
+
   const cfg = STATUS_CONFIG[report.status] || STATUS_CONFIG.pending;
 
   return (
@@ -46,8 +49,8 @@ export default function ReportCard({ report, onUpdateStatus }) {
       <p className="text-sm text-slate-400 line-clamp-3">{report.description}</p>
 
       <div className="flex justify-between text-[11px] text-slate-500">
-        <span>By: {report.reporter_name || 'Anonymous'}</span>
-        <span>{new Date(report.created_at).toLocaleDateString('en-IN')}</span>
+        <span>{t('components.by')}: {report.reporter_name || t('components.anonymous')}</span>
+        <span>{new Date(report.created_at).toLocaleDateString()}</span>
       </div>
 
       {onUpdateStatus && (

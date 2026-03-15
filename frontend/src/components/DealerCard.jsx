@@ -1,15 +1,18 @@
 import { Link } from 'react-router-dom';
 import { MapPin, Phone, ShieldCheck, ShieldX, Clock } from 'lucide-react';
 import TrustScoreBadge from './TrustScoreBadge';
-
-const STATUS = {
-  active:    { icon: <ShieldCheck size={13} />, color: 'text-green-400' },
-  suspended: { icon: <ShieldX size={13} />,    color: 'text-red-400'   },
-  expired:   { icon: <Clock size={13} />,      color: 'text-amber-400' },
-  pending:   { icon: <Clock size={13} />,      color: 'text-slate-500' },
-};
+import { useTranslation } from "react-i18next";
 
 export default function DealerCard({ dealer }) {
+  const { t } = useTranslation();
+
+  const STATUS = {
+    active:    { icon: <ShieldCheck size={13} />, color: 'text-green-400', label: t('dealerProfile.licenseStatus.active') },
+    suspended: { icon: <ShieldX size={13} />,    color: 'text-red-400',   label: t('dealerProfile.licenseStatus.suspended') },
+    expired:   { icon: <Clock size={13} />,      color: 'text-amber-400', label: t('dealerProfile.licenseStatus.expired') },
+    pending:   { icon: <Clock size={13} />,      color: 'text-slate-500', label: t('dealerProfile.licenseStatus.pending') },
+  };
+
   const tags = dealer.specializations?.split(',').filter(Boolean) || [];
   const sc = STATUS[dealer.license_status] || STATUS.pending;
 
@@ -26,7 +29,7 @@ export default function DealerCard({ dealer }) {
           <h3 className="font-bold text-slate-100 truncate text-sm">{dealer.shop_name}</h3>
           <p className="text-slate-500 text-xs">{dealer.name}</p>
           <div className={`flex items-center gap-1 mt-0.5 ${sc.color} text-xs font-semibold capitalize`}>
-            {sc.icon} {dealer.license_status}
+            {sc.icon} {sc.label}
           </div>
         </div>
         <TrustScoreBadge score={dealer.trust_score} />
@@ -57,7 +60,7 @@ export default function DealerCard({ dealer }) {
 
       {/* Footer */}
       <div className="flex justify-between pt-2 border-t border-[hsl(220,14%,20%)] text-[11px] text-slate-500">
-        <span>{dealer.total_reports} reports</span>
+        <span>{dealer.total_reports} {t('components.reports')}</span>
         <span>#{dealer.license_number}</span>
       </div>
     </Link>

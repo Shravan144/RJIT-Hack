@@ -5,23 +5,26 @@ import SearchBar from '../components/SearchBar';
 import BarcodeScanner from '../components/BarcodeScanner';
 import { ScanLine, Package } from 'lucide-react';
 import toast from 'react-hot-toast';
-
-const CATEGORY_FILTERS = [
-  {
-    key: 'category',
-    label: 'Category',
-    options: [
-      { value: 'pesticide',  label: 'Pesticide'  },
-      { value: 'fertilizer', label: 'Fertilizer' },
-      { value: 'seed',       label: 'Seed'       },
-      { value: 'herbicide',  label: 'Herbicide'  },
-      { value: 'fungicide',  label: 'Fungicide'  },
-      { value: 'equipment',  label: 'Equipment'  },
-    ],
-  },
-];
+import { useTranslation } from "react-i18next";
 
 export default function ProductSearch() {
+  const { t } = useTranslation();
+
+  const CATEGORY_FILTERS = [
+    {
+      key: 'category',
+      label: t('productSearch.category'),
+      options: [
+        { value: 'pesticide',  label: t('productSearch.pesticide')  },
+        { value: 'fertilizer', label: t('productSearch.fertilizer') },
+        { value: 'seed',       label: t('productSearch.seed')       },
+        { value: 'herbicide',  label: t('productSearch.herbicide')  },
+        { value: 'fungicide',  label: t('productSearch.fungicide')  },
+        { value: 'equipment',  label: t('productSearch.equipment')  },
+      ],
+    },
+  ];
+
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [scannerOpen, setScannerOpen] = useState(false);
@@ -42,9 +45,9 @@ export default function ProductSearch() {
     try {
       const { data } = await api.get('/products/by_barcode/', { params: { barcode } });
       setProducts([data]);
-      toast.success(`Found: ${data.name}`);
+      toast.success(t('productSearch.found', { name: data.name }));
     } catch {
-      toast.error('Product not found for this barcode.');
+      toast.error(t('productSearch.notFound'));
       setProducts([]);
     }
   };
@@ -52,14 +55,14 @@ export default function ProductSearch() {
   return (
     <div className="max-w-7xl mx-auto px-6 py-10 pb-20">
       <div className="mb-8">
-        <h1 className="font-display font-black text-4xl text-slate-100 mb-2">Product Verification</h1>
-        <p className="text-slate-400">Search products by name, brand, or scan a barcode to verify authenticity.</p>
+        <h1 className="font-display font-black text-4xl text-slate-100 mb-2">{t('productSearch.title')}</h1>
+        <p className="text-slate-400">{t('productSearch.desc')}</p>
       </div>
 
       <div className="flex flex-wrap gap-3 items-start mb-8">
         <div className="flex-1 min-w-64">
           <SearchBar
-            placeholder="Search by name, brand, or barcode..."
+            placeholder={t('productSearch.placeholder')}
             onSearch={q => setParams(p => ({ ...p, search: q }))}
             filters={CATEGORY_FILTERS}
             onFilterChange={(key, val) => setParams(p => ({ ...p, [key]: val }))}
@@ -68,7 +71,7 @@ export default function ProductSearch() {
         <button id="open-scanner-btn"
           className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[hsl(220,14%,16%)] border border-[hsl(220,14%,24%)] text-slate-300 text-sm font-medium hover:border-green-400 hover:text-white transition-all whitespace-nowrap"
           onClick={() => setScannerOpen(true)}>
-          <ScanLine size={16} /> Scan Barcode
+          <ScanLine size={16} /> {t('productSearch.scanBarcode')}
         </button>
       </div>
 
@@ -81,7 +84,7 @@ export default function ProductSearch() {
       ) : products.length === 0 ? (
         <div className="flex flex-col items-center gap-4 py-20 text-slate-500">
           <Package size={48} className="opacity-40" />
-          <p>No products found. Try scanning a barcode!</p>
+          <p>{t('productSearch.noProducts')}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">

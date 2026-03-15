@@ -1,0 +1,209 @@
+{
+  "nav": {
+    "dealers": "Find Dealers",
+    "products": "Scan Product",
+    "report": "File Report",
+    "admin": "Admin",
+    "login": "Login",
+    "logout": "Logout"
+  },
+  "hero": {
+    "verify": "Verify. Trust.",
+    "grow": "Grow Safely.",
+    "description": "AgriVerify helps farmers verify agricultural dealers, check product authenticity, and report fraud — in your language, wherever you are.",
+    "findDealers": "Find Dealers",
+    "scanProduct": "Scan Product",
+    "nearbyDealers": "Nearby Verified Dealers"
+  },
+  "stats": {
+    "dealers": "Verified Dealers",
+    "products": "Products Listed",
+    "farmers": "Farmers Protected",
+    "states": "States Covered"
+  },
+  "features": {
+    "heading": "Everything farmers need",
+    "subheading": "One platform to verify, discover, and report in your local language.",
+    "verify": {
+      "title": "Verify Dealers",
+      "desc": "Check license status and trust scores of agri-product dealers."
+    },
+    "products": {
+      "title": "Find Products",
+      "desc": "Scan barcodes or search to verify product authenticity."
+    },
+    "report": {
+      "title": "Report Fraud",
+      "desc": "File complaints against fake products or unlicensed dealers."
+    },
+    "trust": {
+      "title": "Trust Scores",
+      "desc": "Community-driven ratings to protect Indian farmers."
+    }
+  },
+  "auth": {
+    "loginTab": "Login",
+    "registerTab": "Register",
+    "username": "Username",
+    "email": "Email",
+    "password": "Password",
+    "farmer": "Farmer",
+    "dealer": "Dealer",
+    "inspector": "Inspector",
+    "pleaseWait": "Please wait...",
+    "createAccount": "Create Account",
+    "welcomeBack": "Welcome back, {{username}}!",
+    "accountCreated": "Account created! Welcome to AgriVerify.",
+    "error": "Something went wrong."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "desc": "The page you're looking for doesn't exist or has been moved.",
+    "goHome": "Go Home"
+  },
+  "dealerSearch": {
+    "title": "Find Dealers",
+    "desc": "Search and verify licensed agricultural dealers near you.",
+    "placeholder": "Search by name, shop, or location...",
+    "highestTrust": "Highest Trust Score",
+    "lowestTrust": "Lowest Trust Score",
+    "nameAZ": "Name A–Z",
+    "newestFirst": "Newest First",
+    "noDealers": "No dealers found. Try a different search.",
+    "prev": "← Prev",
+    "next": "Next →",
+    "pageOf": "Page {{page}} of {{totalPages}}",
+    "active": "Active",
+    "suspended": "Suspended",
+    "expired": "Expired",
+    "licenseStatus": "License Status"
+  },
+  "dealerProfile": {
+    "back": "Back",
+    "licenseStatus": {
+      "active": "Licensed & Active",
+      "suspended": "Suspended",
+      "expired": "License Expired",
+      "pending": "Pending Verification"
+    },
+    "license": "License",
+    "tabs": {
+      "overview": "Overview",
+      "products": "Products",
+      "reviews": "Reviews",
+      "report": "Report"
+    },
+    "expires": "Expires",
+    "totalReports": "Total Reports",
+    "verifiedReports": "Verified Reports",
+    "avgRating": "Avg Rating",
+    "trustScore": "Trust Score",
+    "noProducts": "No products listed",
+    "noReviews": "No reviews yet.",
+    "leaveReview": "Leave a Review",
+    "shareExperience": "Share your experience...",
+    "submitReview": "Submit Review",
+    "submitting": "Submitting...",
+    "loginToReview": "Login to submit a review.",
+    "reviewSubmitted": "Review submitted!",
+    "reviewFailed": "Review failed.",
+    "reportDealer": "Report this dealer",
+    "reportDesc": "Think this dealer is selling fake products or operating without a license?",
+    "fileReport": "File a Report"
+  },
+  "productSearch": {
+    "title": "Product Verification",
+    "desc": "Search products by name, brand, or scan a barcode to verify authenticity.",
+    "placeholder": "Search by name, brand, or barcode...",
+    "scanBarcode": "Scan Barcode",
+    "noProducts": "No products found. Try scanning a barcode!",
+    "found": "Found: {{name}}",
+    "notFound": "Product not found for this barcode.",
+    "category": "Category",
+    "pesticide": "Pesticide",
+    "fertilizer": "Fertilizer",
+    "seed": "Seed",
+    "herbicide": "Herbicide",
+    "fungicide": "Fungicide",
+    "equipment": "Equipment"
+  },
+  "reportFiling": {
+    "title": "File a Report",
+    "desc": "Report fraud, fake products, or unlicensed dealers. All reports are confidential.",
+    "anonymousWarning": "You are filing anonymously.",
+    "login": "Login",
+    "toTrack": "to track your report.",
+    "dealerLabel": "Dealer *",
+    "selectDealer": "Select a dealer...",
+    "productLabel": "Product (optional)",
+    "selectProduct": "Select a product (optional)...",
+    "categoryLabel": "Category *",
+    "descLabel": "Description *",
+    "descPlaceholder": "Describe what happened in detail (at least 20 characters)...",
+    "chars": "chars",
+    "imageLabel": "Evidence Image (optional)",
+    "chooseImage": "Choose image...",
+    "submitLabel": "🚨 Submit Report",
+    "submitting": "Submitting...",
+    "successTitle": "Report Filed!",
+    "successDesc": "Thank you for helping protect farmers. Our team will review your report within 48 hours.",
+    "fileAnother": "File Another Report",
+    "browseDealers": "Browse Dealers",
+    "catFake": "Fake / Adulterated Product",
+    "catOverprice": "Overpricing",
+    "catUnlicensed": "Unlicensed Operation",
+    "catExpired": "Selling Expired Product",
+    "catWrongAdvice": "Wrong Agronomic Advice",
+    "catOther": "Other"
+  },
+  "adminDashboard": {
+    "title": "Admin Dashboard",
+    "desc": "Manage reports, dealers, and platform trust scores.",
+    "totalDealers": "Total Dealers",
+    "totalReports": "Total Reports",
+    "pending": "Pending",
+    "verified": "Verified",
+    "tabReports": "Reports ({{count}})",
+    "tabDealers": "Dealers ({{count}})",
+    "noReports": "No reports found.",
+    "thShop": "Shop",
+    "thLicense": "License",
+    "thStatus": "Status",
+    "thTrustScore": "Trust Score",
+    "thReports": "Reports",
+    "reqAdmin": "Admin access required.",
+    "markedAs": "Report marked as {{status}}",
+    "failedToUpdate": "Failed to update status."
+  },
+  "components": {
+    "reports": "reports",
+    "inStock": "In Stock",
+    "outOfStock": "Out of Stock",
+    "ai": "AI",
+    "reg": "Reg",
+    "by": "By",
+    "anonymous": "Anonymous",
+    "searchPlaceholder": "Search...",
+    "searchBtn": "Search",
+    "filtersBtn": "Filters",
+    "allOption": "All",
+    "excellent": "Excellent",
+    "good": "Good",
+    "fair": "Fair",
+    "poor": "Poor",
+    "interactiveMap": "Interactive Map",
+    "dealersInArea": "{{count}} dealers in this area",
+    "mapTip": "💡 Integrate Leaflet or Google Maps for live map view",
+    "scannerTitle": "Barcode Scanner",
+    "cameraDenied": "Camera access denied. Please enter barcode manually.",
+    "pointCamera": "Point camera at barcode",
+    "orEnterManually": "— or enter manually —",
+    "enterBarcode": "Enter barcode / product ID",
+    "retryCamera": "Retry Camera"
+  },
+  "cta": {
+    "title": "Protect yourself from agri-fraud",
+    "desc": "File a report today — it takes less than 2 minutes.",
+    "button": "File a Report"
+  }
+}

@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Leaf, Menu, X, User, LogOut, Shield, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
-export default function Navbar() {
+export default function Navbar({ onLoginClick }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -17,10 +18,17 @@ export default function Navbar() {
     setDropdownOpen(false);
   };
 
+  const { t, i18n } = useTranslation();
+
+  const changeLanguage = (lng) => {
+    i18n.changeLanguage(lng);
+  };
+
+
   const navLinks = [
-    { label: 'Find Dealers', to: '/dealers' },
-    { label: 'Scan Product', to: '/products' },
-    { label: 'File Report', to: '/report' },
+    { label: t('nav.dealers'), to: '/dealers' },
+    { label: t('nav.products'), to: '/products' },
+    { label: t('nav.report'), to: '/report' },
   ];
 
   return (
@@ -46,7 +54,7 @@ export default function Navbar() {
           {user?.role === 'admin' && (
             <Link to="/admin"
               className="px-3.5 py-1.5 rounded-lg text-sm font-medium text-amber-400 hover:bg-[hsl(220,14%,16%)] transition-all flex items-center gap-1">
-              <Shield size={13} /> Admin
+              <Shield size={13} /> {t('nav.admin')}
             </Link>
           )}
         </div>
@@ -73,16 +81,17 @@ export default function Navbar() {
                   <button id="logout-btn"
                     className="flex items-center gap-2 w-full px-2.5 py-2 rounded-lg text-sm text-slate-400 hover:text-slate-100 hover:bg-[hsl(220,12%,18%)] transition-all"
                     onClick={handleLogout}>
-                    <LogOut size={13} /> Logout
+                    <LogOut size={13} /> {t('nav.logout')}
                   </button>
                 </div>
               )}
             </div>
           ) : (
-            <Link to="/" id="nav-login-btn"
+            <button id="nav-login-btn"
+              onClick={onLoginClick}
               className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[hsl(220,14%,16%)] border border-[hsl(220,14%,24%)] text-sm text-slate-400 hover:text-slate-100 hover:border-green-400 transition-all">
-              <User size={13} /> Login
-            </Link>
+              <User size={13} /> {t('nav.login')}
+            </button>
           )}
 
           <button className="md:hidden text-slate-400 p-1.5 rounded-lg hover:bg-[hsl(220,14%,16%)] transition-all"
