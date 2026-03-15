@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import { AlertTriangle, Upload, CheckCircle } from 'lucide-react';
 import { useTranslation } from "react-i18next";
 
-const inputCls = "w-full px-3.5 py-2.5 rounded-lg bg-[hsl(220,14%,16%)] border border-[hsl(220,14%,24%)] text-slate-100 text-sm outline-none focus:border-green-400 placeholder-slate-500 transition-all";
+const inputCls = "w-full px-3.5 py-2.5 rounded-lg bg-brand-elevated border border-brand-border text-brand-base text-sm outline-none focus:border-green-400 placeholder-brand-muted transition-all";
 
 export default function ReportFiling() {
   const { t } = useTranslation();
@@ -55,10 +55,10 @@ export default function ReportFiling() {
   if (submitted) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center p-6">
-        <div className="bg-[hsl(220,16%,12%)] border border-[hsl(220,14%,24%)] rounded-2xl p-12 text-center max-w-md">
+        <div className="bg-brand-surface border border-brand-border rounded-2xl p-12 text-center max-w-md">
           <CheckCircle size={64} className="text-green-400 mx-auto mb-5" />
           <h2 className="font-display font-black text-2xl mb-3">{t('reportFiling.successTitle')}</h2>
-          <p className="text-slate-400 mb-7">{t('reportFiling.successDesc')}</p>
+          <p className="text-brand-muted mb-7">{t('reportFiling.successDesc')}</p>
           <div className="flex flex-wrap gap-3 justify-center">
             <button id="file-another-btn"
               className="px-5 py-2.5 rounded-xl bg-gradient-primary text-white font-semibold text-sm hover:opacity-90 transition-opacity"
@@ -66,7 +66,7 @@ export default function ReportFiling() {
               {t('reportFiling.fileAnother')}
             </button>
             <button id="view-dealers-btn"
-              className="px-5 py-2.5 rounded-xl bg-[hsl(220,14%,16%)] border border-[hsl(220,14%,24%)] text-slate-300 font-semibold text-sm hover:border-green-400 hover:text-white transition-all"
+              className="px-5 py-2.5 rounded-xl bg-brand-elevated border border-brand-border text-brand-muted font-semibold text-sm hover:border-green-400 hover:text-brand-base transition-all"
               onClick={() => navigate('/dealers')}>
               {t('reportFiling.browseDealers')}
             </button>
@@ -79,8 +79,8 @@ export default function ReportFiling() {
   return (
     <div className="max-w-3xl mx-auto px-6 py-10 pb-20">
       <div className="mb-8">
-        <h1 className="font-display font-black text-4xl text-slate-100 mb-2">{t('reportFiling.title')}</h1>
-        <p className="text-slate-400">{t('reportFiling.desc')}</p>
+        <h1 className="font-display font-black text-4xl text-brand-base mb-2">{t('reportFiling.title')}</h1>
+        <p className="text-brand-muted">{t('reportFiling.desc')}</p>
       </div>
 
       {!user && (
@@ -93,7 +93,7 @@ export default function ReportFiling() {
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         {/* Dealer */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-semibold text-slate-400" htmlFor="report-dealer">{t('reportFiling.dealerLabel')}</label>
+          <label className="text-sm font-semibold text-brand-muted" htmlFor="report-dealer">{t('reportFiling.dealerLabel')}</label>
           <select id="report-dealer" required className={`${inputCls} cursor-pointer`}
             value={form.dealer} onChange={e => setForm(f => ({ ...f, dealer: e.target.value }))}>
             <option value="">{t('reportFiling.selectDealer')}</option>
@@ -103,7 +103,7 @@ export default function ReportFiling() {
 
         {/* Product */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-semibold text-slate-400" htmlFor="report-product">{t('reportFiling.productLabel')}</label>
+          <label className="text-sm font-semibold text-brand-muted" htmlFor="report-product">{t('reportFiling.productLabel')}</label>
           <select id="report-product" className={`${inputCls} cursor-pointer`}
             value={form.product} onChange={e => setForm(f => ({ ...f, product: e.target.value }))}>
             <option value="">{t('reportFiling.selectProduct')}</option>
@@ -113,7 +113,7 @@ export default function ReportFiling() {
 
         {/* Category */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-semibold text-slate-400" htmlFor="report-category">{t('reportFiling.categoryLabel')}</label>
+          <label className="text-sm font-semibold text-brand-muted" htmlFor="report-category">{t('reportFiling.categoryLabel')}</label>
           <select id="report-category" required className={`${inputCls} cursor-pointer`}
             value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}>
             {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
@@ -122,19 +122,19 @@ export default function ReportFiling() {
 
         {/* Description */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-semibold text-slate-400" htmlFor="report-desc">{t('reportFiling.descLabel')}</label>
+          <label className="text-sm font-semibold text-brand-muted" htmlFor="report-desc">{t('reportFiling.descLabel')}</label>
           <textarea id="report-desc" rows={5} required
             placeholder={t('reportFiling.descPlaceholder')}
             className={`${inputCls} resize-y`}
             value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
-          <span className="text-xs text-slate-600 text-right">{form.description.length} {t('reportFiling.chars')}</span>
+          <span className="text-xs text-brand-muted text-right">{form.description.length} {t('reportFiling.chars')}</span>
         </div>
 
         {/* Evidence */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-semibold text-slate-400" htmlFor="report-image">{t('reportFiling.imageLabel')}</label>
+          <label className="text-sm font-semibold text-brand-muted" htmlFor="report-image">{t('reportFiling.imageLabel')}</label>
           <label htmlFor="report-image"
-            className="flex items-center gap-2.5 px-4 py-3 rounded-lg border border-dashed border-[hsl(220,14%,24%)] text-slate-500 text-sm cursor-pointer hover:border-green-400 hover:text-slate-200 transition-all w-full">
+            className="flex items-center gap-2.5 px-4 py-3 rounded-lg border border-dashed border-brand-border text-brand-muted text-sm cursor-pointer hover:border-green-400 hover:text-brand-base transition-all w-full">
             <Upload size={15} />
             {form.evidence_image ? form.evidence_image.name : t('reportFiling.chooseImage')}
           </label>

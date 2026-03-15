@@ -36,12 +36,12 @@ export default function Home() {
               <Leaf size={13} /> {t("hero.trusted")}
             </div>
 
-            <h1 className="font-display font-black text-5xl md:text-6xl leading-tight mb-5">
+            <h1 className="font-display font-black text-4xl sm:text-5xl md:text-6xl leading-snug mb-5 break-words">
               {t("hero.verify")}<br />
               <span className="gradient-text">{t("hero.grow")}</span>
             </h1>
 
-            <p className="text-slate-400 text-lg mb-8 max-w-lg">
+            <p className="text-brand-muted text-lg mb-8 max-w-lg">
               {t("hero.description")}
             </p>
 
@@ -53,7 +53,7 @@ export default function Home() {
               </button>
 
               <button id="hero-scan-product"
-                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[hsl(220,14%,16%)] border border-[hsl(220,14%,24%)] text-slate-200 font-semibold text-base hover:border-green-400 hover:text-white transition-all"
+                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-brand-elevated border border-brand-border text-brand-base font-semibold text-base hover:border-green-400 hover:text-brand-base transition-all"
                 onClick={() => navigate('/products')}>
                 {t("hero.scanProduct")}
               </button>
@@ -65,7 +65,7 @@ export default function Home() {
             <h3 className="text-2xl font-bold mb-4">
               {t("hero.nearbyDealers")}
             </h3>
-            <div className="rounded-2xl overflow-hidden border border-[hsl(220,14%,24%)] shadow-2xl">
+            <div className="rounded-2xl overflow-hidden border border-brand-border shadow-2xl">
               <DealerMap/>
             </div>
           </div>
@@ -74,12 +74,12 @@ export default function Home() {
       </section>
 
       {/* ── Stats ──────────────────────────────── */}
-      <section className="bg-[hsl(220,16%,12%)] border-y border-[hsl(220,14%,20%)]">
+      <section className="bg-brand-surface border-y border-brand-subtle">
         <div className="max-w-5xl mx-auto px-6 py-10 flex flex-wrap justify-center">
           {stats.map((s, i) => (
-            <div key={s.label} className={`flex-1 min-w-36 px-8 py-4 text-center ${i < stats.length-1 ? 'border-r border-[hsl(220,14%,20%)]' : ''}`}>
+            <div key={s.label} className={`flex-1 min-w-36 px-8 py-4 text-center ${i < stats.length-1 ? 'border-r border-brand-subtle' : ''}`}>
               <div className="font-display font-black text-3xl text-green-400">{s.value}</div>
-              <div className="text-slate-400 text-sm mt-1">{s.label}</div>
+              <div className="text-brand-muted text-sm mt-1">{s.label}</div>
             </div>
           ))}
         </div>
@@ -91,17 +91,17 @@ export default function Home() {
           {t("features.heading")}
         </h2>
 
-        <p className="text-slate-400 mb-12">
+        <p className="text-brand-muted mb-12">
           {t("features.subheading")}
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {features.map(f => (
             <div key={f.title}
-              className="bg-gradient-card border border-[hsl(220,14%,20%)] rounded-2xl p-8 text-center hover:-translate-y-1 hover:shadow-glow hover:border-green-400/30 transition-all duration-300">
+              className="bg-gradient-card border border-brand-subtle rounded-2xl p-8 text-center hover:-translate-y-1 hover:shadow-glow hover:border-green-400/30 transition-all duration-300">
               <div className="inline-flex p-3.5 rounded-xl bg-green-400/10 text-green-400 mb-4">{f.icon}</div>
               <h3 className="font-bold text-base mb-2">{f.title}</h3>
-              <p className="text-slate-400 text-sm">{f.desc}</p>
+              <p className="text-brand-muted text-sm">{f.desc}</p>
             </div>
           ))}
         </div>
@@ -109,11 +109,11 @@ export default function Home() {
 
       {/* ── CTA Banner ─────────────────────────── */}
       <section className="bg-gradient-to-r from-[hsl(142,80%,12%)] to-[hsl(173,80%,10%)] border-y border-green-400/20 py-16 text-center px-6">
-        <h2 className="font-display font-black text-3xl mb-3">
+        <h2 className="font-display font-black text-3xl mb-3 text-white">
           {t("cta.title")}
         </h2>
 
-        <p className="text-slate-400 mb-7">
+        <p className="text-white/80 mb-7">
           {t("cta.desc")}
         </p>
 

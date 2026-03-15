@@ -14,11 +14,11 @@ export default function TrustScoreBadge({ score }) {
   const pct = Math.min(100, (score / 5) * 100);
 
   return (
-    <div className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg border ${cfg.bg} ${cfg.border} shrink-0`}>
+    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${cfg.bg} ${cfg.border} shrink-0 min-w-[fit-content]`}>
       <div className={`text-xl font-black ${cfg.color}`}>{score?.toFixed(1)}</div>
       <div className="flex flex-col gap-0.5">
         <div className={`text-[10px] font-bold uppercase tracking-wide ${cfg.color}`}>{cfg.label}</div>
-        <div className="w-12 h-1 rounded-full bg-[hsl(220,12%,18%)] overflow-hidden">
+        <div className="w-12 h-1 rounded-full bg-brand-card overflow-hidden">
           <div className={`h-full rounded-full transition-all duration-500 ${cfg.bar}`} style={{ width: `${pct}%` }} />
         </div>
       </div>

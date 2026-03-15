@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { Leaf, Menu, X, User, LogOut, Shield, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
+import ThemeToggle from './ThemeToggle';
 
 export default function Navbar({ onLoginClick }) {
   const { user, logout } = useAuth();
@@ -24,7 +25,6 @@ export default function Navbar({ onLoginClick }) {
     i18n.changeLanguage(lng);
   };
 
-
   const navLinks = [
     { label: t('nav.dealers'), to: '/dealers' },
     { label: t('nav.products'), to: '/products' },
@@ -32,7 +32,7 @@ export default function Navbar({ onLoginClick }) {
   ];
 
   return (
-    <nav className="sticky top-0 z-50 bg-[hsl(220,16%,9%)]/85 backdrop-blur-lg border-b border-[hsl(220,14%,20%)]">
+    <nav className="sticky top-0 z-50 bg-brand-bg/85 backdrop-blur-lg border-b border-brand-subtle">
       <div className="max-w-7xl mx-auto flex items-center justify-between px-6 h-16">
 
         {/* Brand */}
@@ -44,16 +44,16 @@ export default function Navbar({ onLoginClick }) {
         </Link>
 
         {/* Desktop Links */}
-        <div className="hidden md:flex items-center gap-1">
+        <div className="hidden lg:flex items-center gap-2 flex-wrap flex-1 justify-center px-4">
           {navLinks.map((l) => (
             <Link key={l.to} to={l.to}
-              className="px-3.5 py-1.5 rounded-lg text-sm font-medium text-slate-400 hover:text-slate-100 hover:bg-[hsl(220,14%,16%)] transition-all">
+              className="px-3.5 py-1.5 rounded-lg text-sm font-medium text-brand-muted hover:text-brand-base hover:bg-brand-elevated transition-all">
               {l.label}
             </Link>
           ))}
           {user?.role === 'admin' && (
             <Link to="/admin"
-              className="px-3.5 py-1.5 rounded-lg text-sm font-medium text-amber-400 hover:bg-[hsl(220,14%,16%)] transition-all flex items-center gap-1">
+              className="px-3.5 py-1.5 rounded-lg text-sm font-medium text-amber-400 hover:bg-brand-elevated transition-all flex items-center gap-1">
               <Shield size={13} /> {t('nav.admin')}
             </Link>
           )}
@@ -61,10 +61,11 @@ export default function Navbar({ onLoginClick }) {
 
         {/* Actions */}
         <div className="flex items-center gap-2.5">
+          <ThemeToggle />
           {user ? (
             <div className="relative">
               <button id="user-menu-btn"
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[hsl(220,14%,16%)] border border-[hsl(220,14%,24%)] text-sm font-medium text-slate-200 hover:border-green-400 transition-all"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-brand-elevated border border-brand-border text-sm font-medium text-brand-base hover:border-green-400 transition-all"
                 onClick={() => setDropdownOpen(o => !o)}>
                 <div className="w-7 h-7 rounded-full bg-gradient-primary flex items-center justify-center text-white text-xs font-bold">
                   {user.username[0].toUpperCase()}
@@ -74,12 +75,12 @@ export default function Navbar({ onLoginClick }) {
               </button>
 
               {dropdownOpen && (
-                <div className="absolute right-0 top-[calc(100%+8px)] bg-[hsl(220,14%,16%)] border border-[hsl(220,14%,24%)] rounded-xl p-2 min-w-40 shadow-2xl animate-fade-down">
-                  <div className="px-2 py-1 text-[11px] uppercase tracking-widest text-slate-500 border-b border-[hsl(220,14%,20%)] mb-1">
+                <div className="absolute right-0 top-[calc(100%+8px)] bg-brand-elevated border border-brand-border rounded-xl p-2 min-w-40 shadow-2xl animate-fade-down">
+                  <div className="px-2 py-1 text-[11px] uppercase tracking-widest text-brand-muted border-b border-brand-subtle mb-1">
                     {user.role}
                   </div>
                   <button id="logout-btn"
-                    className="flex items-center gap-2 w-full px-2.5 py-2 rounded-lg text-sm text-slate-400 hover:text-slate-100 hover:bg-[hsl(220,12%,18%)] transition-all"
+                    className="flex items-center gap-2 w-full px-2.5 py-2 rounded-lg text-sm text-brand-muted hover:text-brand-base hover:bg-brand-card transition-all"
                     onClick={handleLogout}>
                     <LogOut size={13} /> {t('nav.logout')}
                   </button>
@@ -89,12 +90,12 @@ export default function Navbar({ onLoginClick }) {
           ) : (
             <button id="nav-login-btn"
               onClick={onLoginClick}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[hsl(220,14%,16%)] border border-[hsl(220,14%,24%)] text-sm text-slate-400 hover:text-slate-100 hover:border-green-400 transition-all">
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-brand-elevated border border-brand-border text-sm text-brand-muted hover:text-brand-base hover:border-green-400 transition-all">
               <User size={13} /> {t('nav.login')}
             </button>
           )}
 
-          <button className="md:hidden text-slate-400 p-1.5 rounded-lg hover:bg-[hsl(220,14%,16%)] transition-all"
+          <button className="md:hidden text-brand-muted p-1.5 rounded-lg hover:bg-brand-elevated transition-all"
             id="mobile-menu-btn" onClick={() => setMobileOpen(o => !o)}>
             {mobileOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
@@ -103,10 +104,10 @@ export default function Navbar({ onLoginClick }) {
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="md:hidden bg-[hsl(220,16%,12%)] border-t border-[hsl(220,14%,20%)] px-4 pb-4 pt-2 flex flex-col gap-1">
+        <div className="md:hidden bg-brand-surface border-t border-brand-subtle px-4 pb-4 pt-2 flex flex-col gap-1">
           {navLinks.map((l) => (
             <Link key={l.to} to={l.to}
-              className="px-3 py-2.5 rounded-lg text-sm text-slate-400 hover:text-slate-100 hover:bg-[hsl(220,14%,16%)] transition-all"
+              className="px-3 py-2.5 rounded-lg text-sm text-brand-muted hover:text-brand-base hover:bg-brand-elevated transition-all"
               onClick={() => setMobileOpen(false)}>
               {l.label}
             </Link>

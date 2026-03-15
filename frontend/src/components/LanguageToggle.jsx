@@ -35,7 +35,7 @@ export default function LanguageToggle() {
   };
 
   return (
-    <div className="flex items-center gap-1 text-slate-500 text-xs">
+    <div className="flex items-center gap-1 text-brand-muted text-xs">
       <Globe size={13} />
 
       {LANGUAGES.map((l) => (
@@ -48,7 +48,7 @@ export default function LanguageToggle() {
             ${
               current === l.code
                 ? 'bg-green-400 text-white'
-                : 'text-slate-500 hover:text-slate-200 hover:bg-[hsl(220,14%,16%)]'
+                : 'text-brand-muted hover:text-brand-base hover:bg-brand-elevated'
             }`}
         >
           {l.label}

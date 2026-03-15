@@ -19,7 +19,7 @@ export default function App() {
     <>
       <Toaster position="top-right" toastOptions={{ duration: 3500 }} />
       <Navbar onLoginClick={() => setIsAuthModalOpen(true)} />
-      <div className="flex justify-end px-6 py-1.5 bg-[hsl(220,16%,12%)] border-b border-[hsl(220,14%,20%)]">
+      <div className="flex justify-end px-6 py-1.5 bg-brand-surface border-b border-brand-subtle">
         <LanguageToggle />
       </div>
       <Routes>

@@ -57,13 +57,13 @@ export default function AdminDashboard() {
     { icon: <ShieldCheck size={22}/>, label: t('adminDashboard.verified'),    value: stats.verifiedReports,color: 'text-green-400',  bg: 'bg-green-400/10  border-green-400/25'  },
   ];
 
-  if (loading || fetching) return <div className="min-h-96 flex items-center justify-center text-slate-500">Loading dashboard...</div>;
+  if (loading || fetching) return <div className="min-h-96 flex items-center justify-center text-brand-muted">Loading dashboard...</div>;
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-10 pb-20">
       <div className="mb-8">
-        <h1 className="font-display font-black text-4xl text-slate-100 mb-2">{t('adminDashboard.title')}</h1>
-        <p className="text-slate-400">{t('adminDashboard.desc')}</p>
+        <h1 className="font-display font-black text-4xl text-brand-base mb-2">{t('adminDashboard.title')}</h1>
+        <p className="text-brand-muted">{t('adminDashboard.desc')}</p>
       </div>
 
       {/* Stat Cards */}
@@ -73,20 +73,20 @@ export default function AdminDashboard() {
             className={`flex flex-col gap-3 p-5 rounded-2xl border bg-gradient-card ${s.bg} hover:-translate-y-0.5 transition-all`}>
             <div className={s.color}>{s.icon}</div>
             <div className={`font-display font-black text-3xl ${s.color}`}>{s.value}</div>
-            <div className="text-slate-500 text-xs">{s.label}</div>
+            <div className="text-brand-muted text-xs">{s.label}</div>
           </div>
         ))}
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-[hsl(220,14%,20%)] mb-6">
+      <div className="flex gap-1 border-b border-brand-subtle mb-6">
         {[
           ['reports', t('adminDashboard.tabReports', { count: reports.length })],
           ['dealers', t('adminDashboard.tabDealers', { count: dealers.length })]
         ].map(([key, label]) => (
           <button key={key} id={`admin-tab-${key}`}
             className={`px-5 py-2.5 text-sm font-medium border-b-2 transition-all -mb-px
-              ${tab === key ? 'border-green-400 text-green-400' : 'border-transparent text-slate-500 hover:text-slate-200'}`}
+              ${tab === key ? 'border-green-400 text-green-400' : 'border-transparent text-brand-muted hover:text-brand-base'}`}
             onClick={() => setTab(key)}>{label}</button>
         ))}
       </div>
@@ -94,16 +94,16 @@ export default function AdminDashboard() {
       {tab === 'reports' && (
         <div className="flex flex-col gap-3">
           {reports.length === 0
-            ? <p className="text-slate-500 text-center py-10">{t('adminDashboard.noReports')}</p>
+            ? <p className="text-brand-muted text-center py-10">{t('adminDashboard.noReports')}</p>
             : reports.map(r => <ReportCard key={r.id} report={r} onUpdateStatus={updateReportStatus} />)}
         </div>
       )}
 
       {tab === 'dealers' && (
-        <div className="overflow-x-auto rounded-2xl border border-[hsl(220,14%,20%)]">
+        <div className="overflow-x-auto rounded-2xl border border-brand-subtle">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-[hsl(220,14%,16%)] border-b border-[hsl(220,14%,20%)]">
+              <tr className="bg-brand-elevated border-b border-brand-subtle">
                 {[
                   t('adminDashboard.thShop'),
                   t('adminDashboard.thLicense'),
@@ -111,16 +111,16 @@ export default function AdminDashboard() {
                   t('adminDashboard.thTrustScore'),
                   t('adminDashboard.thReports')
                 ].map(h => (
-                  <th key={h} className="px-4 py-3 text-left text-[11px] uppercase tracking-widest font-semibold text-slate-500">{h}</th>
+                  <th key={h} className="px-4 py-3 text-left text-[11px] uppercase tracking-widest font-semibold text-brand-muted">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {dealers.map(d => (
                 <tr key={d.id} onClick={() => navigate(`/dealers/${d.id}`)}
-                  className="border-b border-[hsl(220,14%,20%)] hover:bg-[hsl(220,14%,16%)] cursor-pointer transition-colors">
-                  <td className="px-4 py-3 font-medium text-slate-100">{d.shop_name}</td>
-                  <td className="px-4 py-3 text-slate-400">{d.license_number}</td>
+                  className="border-b border-brand-subtle hover:bg-brand-elevated cursor-pointer transition-colors">
+                  <td className="px-4 py-3 font-medium text-brand-base">{d.shop_name}</td>
+                  <td className="px-4 py-3 text-brand-muted">{d.license_number}</td>
                   <td className="px-4 py-3">
                     <span className={`capitalize text-xs font-semibold ${
                       d.license_status === 'active' ? 'text-green-400' :
@@ -128,8 +128,8 @@ export default function AdminDashboard() {
                       {d.license_status}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-slate-300 font-semibold">{d.trust_score}</td>
-                  <td className="px-4 py-3 text-slate-400">{d.total_reports}</td>
+                  <td className="px-4 py-3 text-brand-base font-semibold">{d.trust_score}</td>
+                  <td className="px-4 py-3 text-brand-muted">{d.total_reports}</td>
                 </tr>
               ))}
             </tbody>

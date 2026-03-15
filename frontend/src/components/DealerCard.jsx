@@ -10,7 +10,7 @@ export default function DealerCard({ dealer }) {
     active:    { icon: <ShieldCheck size={13} />, color: 'text-green-400', label: t('dealerProfile.licenseStatus.active') },
     suspended: { icon: <ShieldX size={13} />,    color: 'text-red-400',   label: t('dealerProfile.licenseStatus.suspended') },
     expired:   { icon: <Clock size={13} />,      color: 'text-amber-400', label: t('dealerProfile.licenseStatus.expired') },
-    pending:   { icon: <Clock size={13} />,      color: 'text-slate-500', label: t('dealerProfile.licenseStatus.pending') },
+    pending:   { icon: <Clock size={13} />,      color: 'text-brand-muted', label: t('dealerProfile.licenseStatus.pending') },
   };
 
   const tags = dealer.specializations?.split(',').filter(Boolean) || [];
@@ -18,7 +18,7 @@ export default function DealerCard({ dealer }) {
 
   return (
     <Link to={`/dealers/${dealer.id}`} id={`dealer-card-${dealer.id}`}
-      className="flex flex-col gap-3 bg-gradient-card border border-[hsl(220,14%,20%)] rounded-2xl p-5 hover:-translate-y-1 hover:shadow-xl hover:border-green-400/30 transition-all duration-300 cursor-pointer">
+      className="flex flex-col gap-3 bg-gradient-card border border-brand-subtle rounded-2xl p-5 hover:-translate-y-1 hover:shadow-xl hover:border-green-400/30 transition-all duration-300 cursor-pointer">
 
       {/* Header */}
       <div className="flex gap-3 items-start">
@@ -26,8 +26,8 @@ export default function DealerCard({ dealer }) {
           {dealer.shop_name?.[0] || 'A'}
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="font-bold text-slate-100 truncate text-sm">{dealer.shop_name}</h3>
-          <p className="text-slate-500 text-xs">{dealer.name}</p>
+          <h3 className="font-bold text-brand-base break-words line-clamp-2 text-sm">{dealer.shop_name}</h3>
+          <p className="text-brand-muted text-xs">{dealer.name}</p>
           <div className={`flex items-center gap-1 mt-0.5 ${sc.color} text-xs font-semibold capitalize`}>
             {sc.icon} {sc.label}
           </div>
@@ -37,12 +37,12 @@ export default function DealerCard({ dealer }) {
 
       {/* Meta */}
       <div className="flex flex-col gap-1.5">
-        <div className="flex items-center gap-1.5 text-slate-400 text-xs">
-          <MapPin size={12} className="text-slate-500 shrink-0" />
-          <span className="truncate">{dealer.district_name || dealer.address?.substring(0, 40)}</span>
+        <div className="flex items-center gap-1.5 text-brand-muted text-xs">
+          <MapPin size={12} className="text-brand-muted shrink-0" />
+          <span className="break-words line-clamp-2 text-left">{dealer.district_name || dealer.address?.substring(0, 40)}</span>
         </div>
-        <div className="flex items-center gap-1.5 text-slate-400 text-xs">
-          <Phone size={12} className="text-slate-500 shrink-0" />
+        <div className="flex items-center gap-1.5 text-brand-muted text-xs">
+          <Phone size={12} className="text-brand-muted shrink-0" />
           <span>{dealer.phone}</span>
         </div>
       </div>
@@ -59,7 +59,7 @@ export default function DealerCard({ dealer }) {
       )}
 
       {/* Footer */}
-      <div className="flex justify-between pt-2 border-t border-[hsl(220,14%,20%)] text-[11px] text-slate-500">
+      <div className="flex justify-between pt-2 border-t border-brand-subtle text-[11px] text-brand-muted">
         <span>{dealer.total_reports} {t('components.reports')}</span>
         <span>#{dealer.license_number}</span>
       </div>
