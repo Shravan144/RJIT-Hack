@@ -5,7 +5,7 @@
 @tailwind utilities;
 @layer base {
   :root {
-    --color-brand-bg: hsl(0, 0%, 98%);
+    --color-brand-bg: hsl(0, 0%, 99%);
     --color-brand-surface: hsl(0, 0%, 100%);
     --color-brand-elevated: hsl(0, 0%, 100%);
     --color-brand-card: hsl(0, 0%, 100%);
