@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap');
+
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    @apply font-sans bg-brand-bg text-slate-100 antialiased min-h-screen;
+  }
+
+  a { @apply no-underline; }
+}
+
+@layer utilities {
+  .gradient-text {
+    background: linear-gradient(135deg, hsl(142,76%,36%), hsl(173,80%,40%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, hsl(142,76%,36%), hsl(173,80%,40%));
+  }
+
+  .skeleton-shimmer {
+    background: linear-gradient(90deg, hsl(220,14%,16%) 25%, hsl(220,12%,18%) 50%, hsl(220,14%,16%) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  @keyframes shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-fade-down { animation: fadeDown 0.15s ease; }
+
+  @keyframes dotPulse {
+    0%, 100% { transform: scale(1); opacity: 0.7; }
+    50%       { transform: scale(1.4); opacity: 1; }
+  }
+
+  .animate-dot-pulse { animation: dotPulse 2s infinite; }
+}
