@@ -6,7 +6,7 @@
 @layer base {
   :root {
     --color-brand-bg: hsl(0, 0%, 99%);
-    --color-brand-surface: hsl(0, 0%, 100%);
+    --color-brand-surface: hsl(0, 0%, 99%);
     --color-brand-elevated: hsl(0, 0%, 100%);
     --color-brand-card: hsl(0, 0%, 100%);
     --color-brand-border: hsl(214, 32%, 91%);
