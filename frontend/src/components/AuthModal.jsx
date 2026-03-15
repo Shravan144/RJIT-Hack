@@ -20,15 +20,15 @@ export default function AuthModal({ isOpen, onClose }) {
     setLoading(true);
     try {
       if (mode === 'login') {
-        await login(form.username, form.password);
+        const userData = await login(form.username, form.password);
         toast.success(t('auth.welcomeBack', { username: form.username }));
         onClose();
-        navigate('/dealers');
+        navigate(`/${userData?.role || 'farmer'}`);
       } else {
-        await register({ username: form.username, password: form.password, email: form.email, role: form.role });
+        const userData = await register({ username: form.username, password: form.password, email: form.email, role: form.role });
         toast.success(t('auth.accountCreated'));
         onClose();
-        navigate('/dealers');
+        navigate(`/${userData?.role || 'farmer'}`);
       }
     } catch (err) {
       toast.error(err.response?.data?.detail || t('auth.error'));

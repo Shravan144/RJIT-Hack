@@ -17,14 +17,10 @@ export default function Navbar({ onLoginClick }) {
     navigate('/');
     setDropdownOpen(false);
   };
-
   const { t, i18n } = useTranslation();
-
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);
   };
-
-
   const navLinks = [
     { label: t('nav.dealers'), to: '/dealers' },
     { label: t('nav.products'), to: '/products' },
@@ -38,7 +34,7 @@ export default function Navbar({ onLoginClick }) {
         {/* Brand */}
         <Link to="/" id="nav-brand" className="flex items-center gap-2.5">
           <div className="w-9 h-9 rounded-xl bg-gradient-primary flex items-center justify-center text-white shadow-glow">
-            <Leaf size={18} />
+            <Leaf size={18}/>
           </div>
           <span className="font-display font-bold text-xl gradient-text">AgriVerify</span>
         </Link>
@@ -78,8 +74,15 @@ export default function Navbar({ onLoginClick }) {
                   <div className="px-2 py-1 text-[11px] uppercase tracking-widest text-slate-500 border-b border-[hsl(220,14%,20%)] mb-1">
                     {user.role}
                   </div>
+                  <Link 
+                    to={`/${user.role}`}
+                    className="flex items-center gap-2 w-full px-2.5 py-2 rounded-lg text-sm text-slate-400 hover:text-slate-100 hover:bg-[hsl(220,12%,18%)] transition-all mb-1"
+                    onClick={() => setDropdownOpen(false)}
+                  >
+                    <User size={13} /> Dashboard
+                  </Link>
                   <button id="logout-btn"
-                    className="flex items-center gap-2 w-full px-2.5 py-2 rounded-lg text-sm text-slate-400 hover:text-slate-100 hover:bg-[hsl(220,12%,18%)] transition-all"
+                    className="flex items-center gap-2 w-full px-2.5 py-2 rounded-lg text-sm text-red-400 hover:text-red-300 hover:bg-[hsl(220,12%,18%)] transition-all"
                     onClick={handleLogout}>
                     <LogOut size={13} /> {t('nav.logout')}
                   </button>
