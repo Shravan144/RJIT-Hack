@@ -43,8 +43,8 @@ export default function DealerSearch() {
   return (
     <div className="max-w-7xl mx-auto px-6 py-10 pb-20">
       <div className="mb-8">
-        <h1 className="font-display font-black text-4xl text-slate-100 mb-2">{t('dealerSearch.title')}</h1>
-        <p className="text-slate-400">{t('dealerSearch.desc')}</p>
+        <h1 className="font-display font-black text-4xl text-brand-base mb-2">{t('dealerSearch.title')}</h1>
+        <p className="text-brand-muted">{t('dealerSearch.desc')}</p>
       </div>
 
       {/* Controls */}
@@ -57,16 +57,16 @@ export default function DealerSearch() {
             onFilterChange={(key, val) => { setParams(p => ({ ...p, [key]: val })); setPage(1); }}
           />
         </div>
-        <div className="flex gap-1 p-1 bg-[hsl(220,14%,16%)] border border-[hsl(220,14%,24%)] rounded-lg">
+        <div className="flex gap-1 p-1 bg-brand-elevated border border-brand-border rounded-lg">
           <button id="grid-view-btn"
-            className={`p-2 rounded-md transition-all ${view === 'grid' ? 'bg-gradient-primary text-white' : 'text-slate-500 hover:text-slate-200'}`}
+            className={`p-2 rounded-md transition-all ${view === 'grid' ? 'bg-gradient-primary text-white' : 'text-brand-muted hover:text-brand-base'}`}
             onClick={() => setView('grid')}><LayoutGrid size={16} /></button>
           <button id="map-view-btn"
-            className={`p-2 rounded-md transition-all ${view === 'map' ? 'bg-gradient-primary text-white' : 'text-slate-500 hover:text-slate-200'}`}
+            className={`p-2 rounded-md transition-all ${view === 'map' ? 'bg-gradient-primary text-white' : 'text-brand-muted hover:text-brand-base'}`}
             onClick={() => setView('map')}><Map size={16} /></button>
         </div>
         <select id="sort-select"
-          className="px-3 py-2.5 rounded-lg bg-[hsl(220,14%,16%)] border border-[hsl(220,14%,24%)] text-slate-200 text-sm outline-none focus:border-green-400 cursor-pointer transition-all"
+          className="px-3 py-2.5 rounded-lg bg-brand-elevated border border-brand-border text-brand-base text-sm outline-none focus:border-green-400 cursor-pointer transition-all"
           value={params.ordering}
           onChange={e => setParams(p => ({ ...p, ordering: e.target.value }))}>
           <option value="-trust_score">{t('dealerSearch.highestTrust')}</option>
@@ -86,7 +86,7 @@ export default function DealerSearch() {
           ))}
         </div>
       ) : dealers.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 py-20 text-slate-500">
+        <div className="flex flex-col items-center gap-3 py-20 text-brand-muted">
           {t('dealerSearch.noDealers')}
         </div>
       ) : (
@@ -96,13 +96,13 @@ export default function DealerSearch() {
           </div>
 
           {/* Pagination */}
-          <div className="flex justify-center items-center gap-5 mt-10 text-slate-400 text-sm">
+          <div className="flex justify-center items-center gap-5 mt-10 text-brand-muted text-sm">
             <button id="prev-page-btn" disabled={page === 1}
-              className="px-4 py-2 rounded-lg bg-[hsl(220,14%,16%)] border border-[hsl(220,14%,24%)] hover:border-green-400 hover:text-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              className="px-4 py-2 rounded-lg bg-brand-elevated border border-brand-border hover:border-green-400 hover:text-brand-base disabled:opacity-40 disabled:cursor-not-allowed transition-all"
               onClick={() => setPage(p => p - 1)}>{t('dealerSearch.prev')}</button>
             <span>{t('dealerSearch.pageOf', { page, totalPages })}</span>
             <button id="next-page-btn" disabled={page >= totalPages}
-              className="px-4 py-2 rounded-lg bg-[hsl(220,14%,16%)] border border-[hsl(220,14%,24%)] hover:border-green-400 hover:text-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              className="px-4 py-2 rounded-lg bg-brand-elevated border border-brand-border hover:border-green-400 hover:text-brand-base disabled:opacity-40 disabled:cursor-not-allowed transition-all"
               onClick={() => setPage(p => p + 1)}>{t('dealerSearch.next')}</button>
           </div>
         </>

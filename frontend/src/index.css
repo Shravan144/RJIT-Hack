@@ -3,14 +3,49 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+<<<<<<< HEAD
 
+=======
+>>>>>>> ba413a2f13f05691a83bc08c0c170ec1730b6eb6
 @layer base {
+  :root {
+    --color-brand-bg: hsl(0, 0%, 99%);
+    --color-brand-surface: hsl(0, 0%, 99%);
+    --color-brand-elevated: hsl(0, 0%, 100%);
+    --color-brand-card: hsl(0, 0%, 100%);
+    --color-brand-border: hsl(214, 32%, 91%);
+    --color-brand-subtle: hsl(210, 40%, 96%);
+    
+    --color-text-base: hsl(222, 47%, 11%);
+    --color-text-muted: hsl(215, 16%, 47%);
+    --color-text-inverted: hsl(0, 0%, 100%);
+
+    --bg-gradient-hero: linear-gradient(135deg, hsla(142, 60%, 85%, 0.4) 0%, hsl(0, 0%, 98%) 60%);
+    --bg-gradient-card: linear-gradient(145deg, hsl(0, 0%, 100%), hsl(0, 0%, 98%));
+  }
+
+  .dark {
+    --color-brand-bg: hsl(220, 16%, 8%);
+    --color-brand-surface: hsl(220, 16%, 12%);
+    --color-brand-elevated: hsl(220, 14%, 16%);
+    --color-brand-card: hsl(220, 12%, 18%);
+    --color-brand-border: hsl(220, 14%, 24%);
+    --color-brand-subtle: hsl(220, 14%, 20%);
+
+    --color-text-base: hsl(210, 40%, 98%);
+    --color-text-muted: hsl(215, 20%, 65%);
+    --color-text-inverted: hsl(222, 47%, 11%);
+
+    --bg-gradient-hero: linear-gradient(135deg, hsl(142, 60%, 10%) 0%, hsl(220, 16%, 8%) 60%);
+    --bg-gradient-card: linear-gradient(145deg, hsl(220, 14%, 16%), hsl(220, 12%, 18%));
+  }
+
   *, *::before, *::after { box-sizing: border-box; }
 
   html { scroll-behavior: smooth; }
 
   body {
-    @apply font-sans bg-brand-bg text-slate-100 antialiased min-h-screen;
+    @apply font-sans bg-brand-bg text-brand-base antialiased min-h-screen transition-colors duration-200;
   }
 
   a { @apply no-underline; }

@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -20,18 +21,21 @@ export default {
           400: 'hsl(173, 80%, 40%)',
         },
         brand: {
-          bg:       'hsl(220, 16%, 8%)',
-          surface:  'hsl(220, 16%, 12%)',
-          elevated: 'hsl(220, 14%, 16%)',
-          card:     'hsl(220, 12%, 18%)',
-          border:   'hsl(220, 14%, 24%)',
-          subtle:   'hsl(220, 14%, 20%)',
+          bg:       'var(--color-brand-bg)',
+          surface:  'var(--color-brand-surface)',
+          elevated: 'var(--color-brand-elevated)',
+          card:     'var(--color-brand-card)',
+          border:   'var(--color-brand-border)',
+          subtle:   'var(--color-brand-subtle)',
+          base:     'var(--color-text-base)',
+          muted:    'var(--color-text-muted)',
+          inverted: 'var(--color-text-inverted)',
         },
       },
       backgroundImage: {
         'gradient-primary': 'linear-gradient(135deg, hsl(142,76%,36%), hsl(173,80%,40%))',
-        'gradient-hero':    'linear-gradient(135deg, hsl(142,60%,10%) 0%, hsl(220,16%,8%) 60%)',
-        'gradient-card':    'linear-gradient(145deg, hsl(220,14%,16%), hsl(220,12%,18%))',
+        'gradient-hero':    'var(--bg-gradient-hero)',
+        'gradient-card':    'var(--bg-gradient-card)',
       },
       boxShadow: {
         glow:  '0 0 24px hsla(142,76%,36%,0.25)',

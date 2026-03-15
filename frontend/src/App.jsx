@@ -37,6 +37,13 @@ export default function App() {
   return (
     <>
       <Toaster position="top-right" toastOptions={{ duration: 3500 }} />
+<<<<<<< HEAD
+=======
+      <Navbar onLoginClick={() => setIsAuthModalOpen(true)} />
+      <div className="flex justify-end px-6 py-1.5 bg-brand-surface border-b border-brand-subtle">
+        <LanguageToggle />
+      </div>
+>>>>>>> ba413a2f13f05691a83bc08c0c170ec1730b6eb6
       <Routes>
         {/* Public Routes - Keep original Navbar layout here if desired, or let them manage their own */}
         <Route path="/" element={
