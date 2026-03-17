@@ -6,40 +6,74 @@ import {
   ChevronUp, MapPin, Phone, Eye, EyeOff, Star
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { getApiData, getApiMessage } from '../utils/apiMessage';
+import PaginationControls from '../components/PaginationControls';
 
 const TABS = [
-  { key: 'pending', label: 'Pending Approval', icon: <Clock size={15} />, color: 'text-amber-400' },
-  { key: 'approved', label: 'Approved Dealers', icon: <ShieldCheck size={15} />, color: 'text-green-400' },
-  { key: 'flagged', label: 'Red Flagged', icon: <Flag size={15} />, color: 'text-red-400' },
-  { key: 'all', label: 'All Dealers', icon: <Users size={15} />, color: 'text-blue-400' },
+  { key: 'pending', label: 'Pending Approval', icon: <Clock size={16} />, color: 'text-amber-500', activeCls: 'border-amber-500 text-amber-700 bg-amber-50/50' },
+  { key: 'approved', label: 'Approved Dealers', icon: <ShieldCheck size={16} />, color: 'text-emerald-500', activeCls: 'border-emerald-500 text-emerald-700 bg-emerald-50/50' },
+  { key: 'flagged', label: 'Red Flagged', icon: <Flag size={16} />, color: 'text-red-500', activeCls: 'border-red-500 text-red-700 bg-red-50/50' },
+  { key: 'all', label: 'All Dealers', icon: <Users size={16} />, color: 'text-blue-500', activeCls: 'border-blue-500 text-blue-700 bg-blue-50/50' },
 ];
 
 const STATUS_BADGE = {
-  active:    { cls: 'bg-green-400/10 border-green-400/25 text-green-400', label: 'Active' },
-  suspended: { cls: 'bg-red-400/10 border-red-400/25 text-red-400', label: 'Suspended' },
-  expired:   { cls: 'bg-amber-400/10 border-amber-400/25 text-amber-400', label: 'Expired' },
-  pending:   { cls: 'bg-brand-elevated border-brand-border text-brand-muted', label: 'Pending' },
+  active:    { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', label: 'Active' },
+  suspended: { cls: 'bg-red-50 text-red-700 border-red-200', label: 'Suspended' },
+  expired:   { cls: 'bg-amber-50 text-amber-700 border-amber-200', label: 'Expired' },
+  pending:   { cls: 'bg-slate-100 text-slate-600 border-brand-border', label: 'Pending' },
 };
 
 export default function HandleDealer() {
   const [dealers, setDealers] = useState([]);
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('pending');
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageMeta, setPageMeta] = useState({ count: 0, next: null, previous: null });
   const [expandedId, setExpandedId] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
 
   useEffect(() => {
-    fetchDealers();
+    fetchStats();
   }, []);
+
+  useEffect(() => {
+    fetchDealers();
+  }, [tab, search, page]);
+
+  const fetchStats = async () => {
+    try {
+      const { data } = await api.get('/dealers/admin_stats/');
+      setStats(data);
+    } catch (err) {
+      toast.error(getApiMessage(err, 'Failed to load dealer stats'));
+    }
+  };
 
   const fetchDealers = async () => {
     try {
-      const { data } = await api.get('/dealers/', { params: { page_size: 200 } });
-      setDealers(data.results || data);
+      const params = {
+        page,
+        page_size: 12,
+        search: search || undefined,
+      };
+
+      if (tab === 'pending') {
+        params.is_approved = false;
+        params.is_flagged = false;
+      } else if (tab === 'approved') {
+        params.is_approved = true;
+      } else if (tab === 'flagged') {
+        params.is_flagged = true;
+      }
+
+      const { data } = await api.get('/dealers/', { params });
+      setDealers(data.results || []);
+      setPageMeta({ count: data.count || 0, next: data.next, previous: data.previous });
     } catch (err) {
       console.error('Error fetching dealers:', err);
-      toast.error('Failed to load dealers');
+      toast.error(getApiMessage(err, 'Failed to load dealers'));
     } finally {
       setLoading(false);
     }
@@ -50,9 +84,10 @@ export default function HandleDealer() {
     try {
       await api.post(`/dealers/${id}/approve/`);
       toast.success('Dealer approved successfully!');
+      fetchStats();
       fetchDealers();
     } catch (err) {
-      toast.error('Failed to approve dealer');
+      toast.error(getApiMessage(err, 'Failed to approve dealer'));
     } finally {
       setActionLoading(null);
     }
@@ -63,9 +98,10 @@ export default function HandleDealer() {
     try {
       await api.post(`/dealers/${id}/reject/`);
       toast.success('Dealer rejected');
+      fetchStats();
       fetchDealers();
     } catch (err) {
-      toast.error('Failed to reject dealer');
+      toast.error(getApiMessage(err, 'Failed to reject dealer'));
     } finally {
       setActionLoading(null);
     }
@@ -75,10 +111,19 @@ export default function HandleDealer() {
     setActionLoading(id);
     try {
       const { data } = await api.post(`/dealers/${id}/flag/`);
-      toast.success(data.detail);
+      const payload = getApiData(data) || {};
+      toast.success(data.message || data.detail || 'Dealer flag updated');
+      if (payload.is_flagged !== undefined) {
+        setDealers(prev => prev.map(d => d.id === id ? {
+          ...d,
+          is_flagged: payload.is_flagged,
+          license_status: payload.is_flagged ? 'suspended' : d.license_status,
+        } : d));
+      }
+      fetchStats();
       fetchDealers();
     } catch (err) {
-      toast.error('Failed to update flag status');
+      toast.error(getApiMessage(err, 'Failed to update flag status'));
     } finally {
       setActionLoading(null);
     }
@@ -89,240 +134,246 @@ export default function HandleDealer() {
     try {
       await api.patch(`/dealers/${id}/`, { license_status: newStatus });
       toast.success(`Dealer status updated to ${newStatus}`);
+      fetchStats();
       fetchDealers();
     } catch (err) {
-      toast.error('Failed to update dealer status');
+      toast.error(getApiMessage(err, 'Failed to update dealer status'));
     } finally {
       setActionLoading(null);
     }
   };
 
-  // Filter dealers based on tab
-  const filteredDealers = dealers.filter(d => {
-    const matchesSearch = !search || d.shop_name?.toLowerCase().includes(search.toLowerCase()) || d.name?.toLowerCase().includes(search.toLowerCase()) || d.license_number?.toLowerCase().includes(search.toLowerCase());
-    
-    if (!matchesSearch) return false;
-    
-    switch (tab) {
-      case 'pending': return !d.is_approved && !d.is_flagged;
-      case 'approved': return d.is_approved;
-      case 'flagged': return d.is_flagged;
-      case 'all': return true;
-      default: return true;
-    }
-  });
-
   const tabCounts = {
-    pending: dealers.filter(d => !d.is_approved && !d.is_flagged).length,
-    approved: dealers.filter(d => d.is_approved).length,
-    flagged: dealers.filter(d => d.is_flagged).length,
-    all: dealers.length,
+    pending: stats?.dealers?.pending_approval ?? 0,
+    approved: stats?.dealers?.approved ?? 0,
+    flagged: stats?.dealers?.flagged ?? 0,
+    all: stats?.dealers?.total ?? 0,
   };
+  const totalPages = Math.max(1, Math.ceil((pageMeta.count || 0) / 12));
 
   if (loading) {
     return (
-      <div className="p-8">
-        <h1 className="font-display font-black text-3xl text-brand-base mb-6">Handle Dealers</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[...Array(6)].map((_, i) => <div key={i} className="h-48 rounded-2xl skeleton-shimmer" />)}
+      <div className="p-4 md:p-8 max-w-7xl mx-auto">
+        <h1 className="font-display font-bold text-3xl text-brand-base mb-6 tracking-tight">Handle Dealers</h1>
+        <div className="flex flex-col gap-4">
+          {[...Array(6)].map((_, i) => <div key={i} className="h-24 bg-brand-surface border border-brand-subtle rounded-3xl animate-pulse shadow-sm" />)}
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-8 max-w-7xl">
+    <div className="p-4 md:p-8 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
         <div>
-          <div className="flex items-center gap-3 mb-1">
-            <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center text-white shadow-glow">
-              <Users size={20} />
+          <div className="flex items-center gap-4 mb-2">
+            <div className="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center text-white shadow-md">
+              <Users size={24} className="stroke-2 text-emerald-400" />
             </div>
-            <h1 className="font-display font-black text-3xl text-brand-base">Handle Dealers</h1>
+            <h1 className="font-display font-bold text-3xl md:text-4xl text-brand-base tracking-tight">Handle Dealers</h1>
           </div>
-          <p className="text-brand-muted ml-[52px]">Verify, approve, and manage all dealer registrations</p>
+          <p className="text-brand-muted font-medium md:ml-[64px]">Verify, approve, and manage all dealer registrations</p>
         </div>
       </div>
 
-      {/* Search Bar */}
-      <div className="flex items-center gap-3 mb-5">
-        <div className="flex-1 flex items-center bg-brand-elevated border border-brand-border rounded-xl focus-within:border-green-400 transition-all">
-          <Search className="mx-3 text-brand-muted" size={17} />
-          <input
-            id="dealer-admin-search"
-            type="text"
-            placeholder="Search by name, shop, or license number..."
-            className="flex-1 bg-transparent border-none outline-none text-brand-base text-sm py-3 pr-4 placeholder-brand-muted"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+      <div className="bg-brand-surface border border-brand-border rounded-3xl shadow-sm overflow-hidden mb-6 flex flex-col md:flex-row md:items-center justify-between p-2">
+         {/* Tabs */}
+         <div className="flex gap-1 overflow-x-auto p-2 no-scrollbar">
+          {TABS.map((t) => (
+            <button
+              key={t.key}
+              id={`tab-${t.key}`}
+              onClick={() => {
+                setTab(t.key);
+                setPage(1);
+              }}
+              className={`flex items-center gap-2.5- px-5 py-3 text-sm font-bold rounded-xl whitespace-nowrap transition-all border-b-2
+                ${tab === t.key
+                  ? t.activeCls
+                  : 'text-brand-muted border-transparent hover:text-brand-base hover:bg-brand-bg'
+                }`}
+            >
+              <span className={t.color}>{t.icon}</span>
+              {t.label}
+              <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-bold ${
+                tab === t.key ? 'bg-brand-surface text-brand-base shadow-sm' : 'bg-slate-100 text-brand-muted'
+              }`}>
+                {tabCounts[t.key]}
+              </span>
+            </button>
+          ))}
         </div>
-      </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 mb-6 overflow-x-auto pb-1 border-b border-brand-subtle">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            id={`tab-${t.key}`}
-            onClick={() => setTab(t.key)}
-            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px whitespace-nowrap transition-all
-              ${tab === t.key
-                ? `${t.color} border-current`
-                : 'text-brand-muted border-transparent hover:text-brand-base'
-              }`}
-          >
-            {t.icon}
-            {t.label}
-            <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-              tab === t.key ? 'bg-brand-elevated' : 'bg-brand-subtle text-brand-muted'
-            }`}>
-              {tabCounts[t.key]}
-            </span>
-          </button>
-        ))}
+        {/* Search Bar */}
+        <div className="p-2 w-full md:w-80">
+          <div className="flex items-center gap-3 bg-brand-bg border border-brand-border rounded-xl focus-within:border-emerald-500 focus-within:bg-brand-surface focus-within:ring-2 focus-within:ring-emerald-500/20 transition-all px-4 py-2.5">
+            <Search className="text-slate-400 shrink-0" size={18} />
+            <input
+              id="dealer-admin-search"
+              type="text"
+              placeholder="Search dealers..."
+              className="flex-1 bg-transparent border-none outline-none text-brand-base font-medium text-sm placeholder-slate-400"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+            />
+          </div>
+        </div>
       </div>
 
       {/* Empty State */}
-      {filteredDealers.length === 0 ? (
-        <div className="flex flex-col items-center gap-4 py-20 text-brand-muted">
-          <Users size={48} className="opacity-30" />
-          <p className="text-lg font-medium">No dealers found</p>
-          <p className="text-sm">
-            {tab === 'pending' ? 'No dealers are waiting for approval' :
-             tab === 'flagged' ? 'No dealers have been red-flagged' :
-             'Try adjusting your search or filter'}
+      {dealers.length === 0 ? (
+        <div className="flex flex-col items-center justify-center bg-brand-surface border border-brand-border rounded-3xl shadow-sm p-20 text-center">
+          <div className="w-20 h-20 bg-brand-bg rounded-full flex items-center justify-center text-slate-300 mb-6">
+             <Users size={40} />
+          </div>
+          <h3 className="font-bold text-brand-base text-xl mb-2">No dealers found</h3>
+          <p className="text-brand-muted font-medium max-w-sm">
+            {tab === 'pending' ? 'Great job! No dealers are currently waiting for approval' :
+             tab === 'flagged' ? 'Excellent! No dealers have been red-flagged for violations' :
+             'We couldn\'t find any dealers matching your current search parameters.'}
           </p>
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          {filteredDealers.map((dealer) => {
+          {dealers.map((dealer) => {
             const sc = STATUS_BADGE[dealer.license_status] || STATUS_BADGE.pending;
             const isExpanded = expandedId === dealer.id;
             const isLoading = actionLoading === dealer.id;
 
             return (
               <div key={dealer.id}
-                className={`bg-brand-surface border rounded-2xl overflow-hidden transition-all duration-300 ${
+                className={`bg-brand-surface border rounded-3xl overflow-hidden transition-all duration-300 shadow-sm ${
                   dealer.is_flagged
-                    ? 'border-red-400/30 shadow-[0_0_20px_rgba(239,68,68,0.05)]'
+                    ? 'border-red-200'
                     : !dealer.is_approved
-                    ? 'border-amber-400/30'
-                    : 'border-brand-subtle hover:border-green-400/30'
+                    ? 'border-amber-200'
+                    : 'border-brand-border hover:border-emerald-300'
                 }`}
               >
                 {/* Main Row */}
                 <div
-                  className="flex flex-wrap items-center gap-4 p-5 cursor-pointer"
+                  className="flex flex-wrap items-center gap-4 p-5 cursor-pointer hover:bg-brand-bg/50 transition-colors"
                   onClick={() => setExpandedId(isExpanded ? null : dealer.id)}
                 >
                   {/* Avatar */}
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white text-lg font-bold shrink-0 ${
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white text-xl font-display font-black shrink-0 shadow-sm ${
                     dealer.is_flagged
-                      ? 'bg-gradient-to-br from-red-500 to-rose-600'
+                      ? 'bg-red-600'
                       : dealer.is_approved
-                      ? 'bg-gradient-primary'
-                      : 'bg-gradient-to-br from-amber-500 to-orange-500'
+                      ? 'bg-emerald-600'
+                      : 'bg-amber-500'
                   }`}>
                     {dealer.shop_name?.[0] || '?'}
                   </div>
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-bold text-brand-base text-base truncate">{dealer.shop_name}</h3>
+                    <div className="flex items-center gap-3 flex-wrap mb-1">
+                      <h3 className="font-bold text-brand-base text-lg truncate tracking-tight">{dealer.shop_name}</h3>
                       {dealer.is_flagged && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-400/10 border border-red-400/25 text-red-400 text-[11px] font-bold uppercase tracking-wider">
-                          <Flag size={10} /> Flagged
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-100 border border-red-200 text-red-700 text-xs font-bold uppercase tracking-widest">
+                          <Flag size={12} className="stroke-2" /> Flagged
                         </span>
                       )}
                       {!dealer.is_approved && !dealer.is_flagged && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-400/10 border border-amber-400/25 text-amber-400 text-[11px] font-bold uppercase tracking-wider">
-                          <Clock size={10} /> Pending
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-100 border border-amber-200 text-amber-700 text-xs font-bold uppercase tracking-widest">
+                          <Clock size={12} className="stroke-2" /> Pending
                         </span>
                       )}
                     </div>
-                    <p className="text-brand-muted text-sm truncate">{dealer.name} • #{dealer.license_number}</p>
+                    <p className="text-brand-muted font-medium text-sm truncate flex gap-2">
+                       <span className="text-brand-base font-semibold">{dealer.name}</span>
+                       <span className="text-slate-300">•</span>
+                       <span>License: #{dealer.license_number}</span>
+                    </p>
                   </div>
 
                   {/* Badges */}
-                  <div className="flex items-center gap-3 shrink-0">
-                    <div className={`px-2.5 py-1 rounded-lg border text-xs font-semibold ${sc.cls}`}>
+                  <div className="flex items-center gap-4 shrink-0">
+                    <div className={`px-3 py-1.5 rounded-xl border text-xs font-bold uppercase tracking-widest ${sc.cls}`}>
                       {sc.label}
                     </div>
-                    <div className="flex items-center gap-1 text-sm font-bold">
-                      <Star size={14} className={dealer.trust_score >= 3 ? 'text-green-400' : 'text-red-400'} />
-                      <span className={dealer.trust_score >= 3 ? 'text-green-400' : 'text-red-400'}>{dealer.trust_score}</span>
+                    <div className="flex flex-col items-center justify-center p-2 rounded-xl bg-brand-bg border border-brand-subtle w-16">
+                       <Star size={14} className={dealer.trust_score >= 3 ? 'text-emerald-500 fill-emerald-500/20' : 'text-red-500 fill-red-500/20'} />
+                       <span className={`text-sm font-bold ${dealer.trust_score >= 3 ? 'text-emerald-600' : 'text-red-600'}`}>{dealer.trust_score}</span>
                     </div>
-                    <div className="text-brand-muted">
-                      {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${isExpanded ? 'bg-slate-100 text-brand-base' : 'text-slate-400'}`}>
+                      {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                     </div>
                   </div>
                 </div>
 
                 {/* Expanded Panel */}
                 {isExpanded && (
-                  <div className="border-t border-brand-subtle bg-brand-elevated/50 p-5 animate-fade-down">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="border-t border-brand-subtle bg-brand-bg/50 p-6 md:p-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                       {/* Details */}
-                      <div className="flex flex-col gap-3">
-                        <h4 className="font-semibold text-brand-base text-sm uppercase tracking-wider">Details</h4>
-                        <div className="flex flex-col gap-2 text-sm">
-                          <div className="flex items-start gap-2 text-brand-muted">
-                            <MapPin size={14} className="shrink-0 mt-0.5" />
-                            <span>{dealer.address}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-brand-muted">
-                            <Phone size={14} className="shrink-0" />
-                            <span>{dealer.phone}</span>
-                          </div>
+                      <div className="flex flex-col gap-4 md:pr-8 md:border-r md:border-brand-border">
+                        <h4 className="font-bold text-brand-base text-sm uppercase tracking-widest flex items-center gap-2">
+                           <MapPin size={16} className="text-slate-400" /> Contact Details
+                        </h4>
+                        
+                        <div className="bg-brand-surface border border-brand-border rounded-2xl p-4 shadow-sm text-sm font-medium text-slate-600 flex flex-col gap-3">
+                           <div className="flex gap-3">
+                             <div className="w-8 h-8 rounded-full bg-brand-bg flex items-center justify-center text-slate-400 shrink-0">
+                               <MapPin size={14} />
+                             </div>
+                             <div className="py-1">{dealer.address}</div>
+                           </div>
+                           <div className="flex gap-3 items-center">
+                             <div className="w-8 h-8 rounded-full bg-brand-bg flex items-center justify-center text-slate-400 shrink-0">
+                               <Phone size={14} />
+                             </div>
+                             <div>{dealer.phone}</div>
+                           </div>
                         </div>
 
-                        {/* Stats */}
-                        <div className="grid grid-cols-3 gap-3 mt-2">
-                          <div className="bg-brand-surface border border-brand-subtle rounded-xl p-3 text-center">
-                            <div className="font-display font-bold text-xl text-brand-base">{dealer.trust_score}</div>
-                            <div className="text-brand-muted text-[11px]">Trust Score</div>
-                          </div>
-                          <div className="bg-brand-surface border border-brand-subtle rounded-xl p-3 text-center">
-                            <div className={`font-display font-bold text-xl ${dealer.total_reports > 0 ? 'text-amber-400' : 'text-brand-base'}`}>
+                        {/* Stats mini-cards */}
+                        <div className="grid grid-cols-2 gap-4 mt-2">
+                          <div className="bg-brand-surface border border-brand-border rounded-2xl p-4 text-center shadow-sm">
+                            <div className={`font-display font-bold text-3xl mb-1 ${dealer.total_reports > 0 ? 'text-amber-500' : 'text-brand-base'}`}>
                               {dealer.total_reports}
                             </div>
-                            <div className="text-brand-muted text-[11px]">Reports</div>
+                            <div className="text-brand-muted font-bold text-[10px] uppercase tracking-widest">Total Reports</div>
                           </div>
-                          <div className="bg-brand-surface border border-brand-subtle rounded-xl p-3 text-center">
-                            <div className="font-display font-bold text-xl text-brand-base">
-                              {dealer.is_approved ? <Eye size={20} className="mx-auto text-green-400" /> : <EyeOff size={20} className="mx-auto text-brand-muted" />}
+                          <div className="bg-brand-surface border border-brand-border rounded-2xl p-4 text-center shadow-sm">
+                            <div className="font-display font-bold text-3xl mb-1 text-brand-base">
+                              {dealer.is_approved ? <Eye size={28} className="mx-auto text-emerald-500" /> : <EyeOff size={28} className="mx-auto text-slate-300" />}
                             </div>
-                            <div className="text-brand-muted text-[11px]">{dealer.is_approved ? 'Visible' : 'Hidden'}</div>
+                            <div className="text-brand-muted font-bold text-[10px] uppercase tracking-widest">{dealer.is_approved ? 'Public Listing' : 'Hidden Listing'}</div>
                           </div>
                         </div>
                       </div>
 
                       {/* Actions */}
-                      <div className="flex flex-col gap-3">
-                        <h4 className="font-semibold text-brand-base text-sm uppercase tracking-wider">Admin Actions</h4>
+                      <div className="flex flex-col gap-4">
+                        <h4 className="font-bold text-brand-base text-sm uppercase tracking-widest flex items-center gap-2">
+                           <ShieldCheck size={16} className="text-slate-400" /> Admin Tools
+                        </h4>
 
                         {/* Approval Actions */}
                         {!dealer.is_approved && !dealer.is_flagged && (
-                          <div className="flex gap-2">
+                          <div className="flex flex-col sm:flex-row gap-3">
                             <button
                               id={`approve-${dealer.id}`}
                               disabled={isLoading}
                               onClick={(e) => { e.stopPropagation(); handleApprove(dealer.id); }}
-                              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-green-500/10 hover:bg-green-500/20 border border-green-500/20 text-green-400 text-sm font-semibold disabled:opacity-50 transition-all"
+                              className="flex-1 flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold disabled:opacity-50 transition-all shadow-sm"
                             >
-                              <CheckCircle size={16} />
-                              Approve & Activate
+                              <CheckCircle size={18} className="stroke-2" />
+                              Approve Registration
                             </button>
                             <button
                               id={`reject-${dealer.id}`}
                               disabled={isLoading}
                               onClick={(e) => { e.stopPropagation(); handleReject(dealer.id); }}
-                              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 text-sm font-semibold disabled:opacity-50 transition-all"
+                              className="flex-1 flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-brand-surface border-2 border-brand-border hover:border-red-200 hover:bg-red-50 text-brand-base hover:text-red-600 font-bold disabled:opacity-50 transition-all shadow-sm"
                             >
-                              <XCircle size={16} />
+                              <XCircle size={18} className="stroke-2" />
                               Reject
                             </button>
                           </div>
@@ -330,52 +381,56 @@ export default function HandleDealer() {
 
                         {/* Status toggle */}
                         {dealer.is_approved && (
-                          <div className="flex gap-2">
-                            {dealer.license_status !== 'active' && (
-                              <button
-                                disabled={isLoading}
-                                onClick={(e) => { e.stopPropagation(); handleStatusChange(dealer.id, 'active'); }}
-                                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-green-500/10 hover:bg-green-500/20 border border-green-500/20 text-green-400 text-sm font-semibold disabled:opacity-50 transition-all"
-                              >
-                                <ShieldCheck size={16} />
-                                Activate License
-                              </button>
-                            )}
-                            {dealer.license_status !== 'suspended' && (
-                              <button
-                                disabled={isLoading}
-                                onClick={(e) => { e.stopPropagation(); handleStatusChange(dealer.id, 'suspended'); }}
-                                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-amber-400 text-sm font-semibold disabled:opacity-50 transition-all"
-                              >
-                                <ShieldX size={16} />
-                                Suspend License
-                              </button>
-                            )}
+                          <div className="bg-brand-surface border border-brand-border rounded-2xl p-4 shadow-sm flex flex-col gap-3">
+                             <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">License Status</span>
+                             <div className="flex flex-col sm:flex-row gap-3">
+                                {dealer.license_status !== 'active' && (
+                                  <button
+                                    disabled={isLoading}
+                                    onClick={(e) => { e.stopPropagation(); handleStatusChange(dealer.id, 'active'); }}
+                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-emerald-50 text-emerald-700 font-bold hover:bg-emerald-100 disabled:opacity-50 transition-all"
+                                  >
+                                    <ShieldCheck size={16} className="stroke-2" /> Activate
+                                  </button>
+                                )}
+                                {dealer.license_status !== 'suspended' && (
+                                  <button
+                                    disabled={isLoading}
+                                    onClick={(e) => { e.stopPropagation(); handleStatusChange(dealer.id, 'suspended'); }}
+                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-amber-50 text-amber-700 font-bold hover:bg-amber-100 disabled:opacity-50 transition-all"
+                                  >
+                                    <ShieldX size={16} className="stroke-2" /> Suspend
+                                  </button>
+                                )}
+                             </div>
                           </div>
                         )}
 
                         {/* Flag/Unflag */}
-                        <button
-                          id={`flag-${dealer.id}`}
-                          disabled={isLoading}
-                          onClick={(e) => { e.stopPropagation(); handleFlag(dealer.id); }}
-                          className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold disabled:opacity-50 transition-all ${
-                            dealer.is_flagged
-                              ? 'bg-green-500/10 hover:bg-green-500/20 border border-green-500/20 text-green-400'
-                              : 'bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400'
-                          }`}
-                        >
-                          <Flag size={16} />
-                          {dealer.is_flagged ? 'Remove Red Flag' : 'Red Flag Dealer'}
-                        </button>
+                        <div className={`mt-2 p-4 rounded-2xl border ${dealer.is_flagged ? 'bg-red-50 border-red-200' : 'bg-brand-bg border-brand-border'}`}>
+                           <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 block">Safety & Integrity</span>
+                           <button
+                             id={`flag-${dealer.id}`}
+                             disabled={isLoading}
+                             onClick={(e) => { e.stopPropagation(); handleFlag(dealer.id); }}
+                             className={`w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-bold disabled:opacity-50 transition-all shadow-sm ${
+                               dealer.is_flagged
+                                 ? 'bg-brand-surface border-2 border-emerald-500 text-emerald-600 hover:bg-emerald-50'
+                                 : 'bg-red-600 border border-transparent text-white hover:bg-red-700'
+                             }`}
+                           >
+                             <Flag size={18} className="stroke-2" />
+                             {dealer.is_flagged ? 'Revoke Red Flag' : 'Red Flag Dealer'}
+                           </button>
 
-                        {/* Warning */}
-                        {dealer.total_reports > 3 && !dealer.is_flagged && (
-                          <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-red-400/5 border border-red-400/15 text-red-400 text-xs">
-                            <AlertTriangle size={14} className="shrink-0 mt-0.5" />
-                            <span>This dealer has <strong>{dealer.total_reports}</strong> complaints. Consider red-flagging to protect farmers.</span>
-                          </div>
-                        )}
+                           {/* Warning */}
+                           {dealer.total_reports > 3 && !dealer.is_flagged && (
+                             <div className="flex items-start gap-3 mt-4 px-4 py-3 rounded-xl bg-red-100 text-red-800 text-sm font-medium border border-red-200">
+                               <AlertTriangle size={16} className="shrink-0 mt-0.5 text-red-600" />
+                               <span>This dealer has <strong>{dealer.total_reports}</strong> complaints. Manual review and red-flagging is highly recommended.</span>
+                             </div>
+                           )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -383,6 +438,19 @@ export default function HandleDealer() {
               </div>
             );
           })}
+
+          <div className="mt-8 mb-4">
+             <PaginationControls
+               page={page}
+               totalPages={totalPages}
+               count={pageMeta.count}
+               itemLabel="dealers"
+               hasPrevious={!!pageMeta.previous}
+               hasNext={!!pageMeta.next}
+               onPrevious={() => setPage(p => Math.max(1, p - 1))}
+               onNext={() => setPage(p => p + 1)}
+             />
+          </div>
         </div>
       )}
     </div>

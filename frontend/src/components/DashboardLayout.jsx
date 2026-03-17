@@ -10,29 +10,35 @@ export default function DashboardLayout({ allowedRoles }) {
   const location = useLocation();
 
   if (loading) {
-    return <div className="min-h-screen bg-brand-bg flex items-center justify-center text-brand-muted">Loading...</div>;
+    return (
+      <div className="min-h-screen bg-brand-bg flex flex-col items-center justify-center text-brand-muted gap-4">
+        <div className="w-8 h-8 rounded-full border-4 border-brand-border border-t-emerald-500 animate-spin" />
+        <span className="text-sm font-bold tracking-widest uppercase">Loading System...</span>
+      </div>
+    );
   }
 
-  // Determine user role logic. Assuming it is stored in the context under user.role
   const userRole = user?.role || 'user';
 
   if (!user || !allowedRoles.includes(userRole)) {
-    // If not logged in, or not allowed, redirect to root
     return <Navigate to="/" replace state={{ from: location }} />;
   }
 
   return (
-    <div className="flex flex-col h-screen bg-brand-bg overflow-hidden">
-      <div className="flex items-center justify-between px-6 py-3 bg-brand-elevated border-b border-brand-border shrink-0">
-        <Link to={`/${userRole}`} className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-gradient-primary flex items-center justify-center text-white shadow-glow">
-            <Leaf size={18}/>
+    <div className="flex flex-col h-screen bg-brand-bg overflow-hidden text-brand-base">
+      <div className="flex items-center justify-between px-6 py-3 bg-brand-surface border-b border-brand-border shrink-0 shadow-sm z-50">
+        <Link to={`/${userRole}`} className="flex items-center gap-3 group">
+          <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-md group-hover:bg-emerald-700 transition-colors">
+            <Leaf size={18} strokeWidth={2.5} />
           </div>
-          <span className="font-display font-bold text-xl gradient-text">AgriVerify</span>
+          <div className="leading-tight">
+             <span className="font-display font-bold text-xl text-brand-base tracking-tight">AgriVerify</span>
+             <p className="text-[9px] uppercase font-bold tracking-[0.2em] text-emerald-600 mt-0.5">Admin Central</p>
+          </div>
         </Link>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <ThemeToggle />
-          <div className="h-5 w-[1px] bg-brand-subtle"></div>
+          <div className="h-6 w-px bg-brand-border"></div>
           <LanguageToggle />
         </div>
       </div>
@@ -40,8 +46,10 @@ export default function DashboardLayout({ allowedRoles }) {
       <div className="flex flex-1 overflow-hidden">
         <Sidebar role={userRole} />
         
-        <main className="flex-1 overflow-y-auto bg-brand-surface relative">
-          <Outlet />
+        <main className="flex-1 overflow-y-auto bg-brand-bg relative p-6 md:p-8">
+          <div className="max-w-7xl mx-auto">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

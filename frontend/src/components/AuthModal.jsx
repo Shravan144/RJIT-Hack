@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useTranslation } from "react-i18next";
+import { getApiMessage } from '../utils/apiMessage';
 
 export default function AuthModal({ isOpen, onClose }) {
   const { t } = useTranslation();
@@ -20,8 +21,8 @@ export default function AuthModal({ isOpen, onClose }) {
     setLoading(true);
     try {
       if (mode === 'login') {
-        const userData = await login(form.username, form.password);
-        toast.success(t('auth.welcomeBack', { username: form.username }), { duration: 2000, position: 'top-right' });
+        const userData = await login(form.email, form.password);
+        toast.success(t('auth.welcomeBack', { username: userData?.username || form.email }), { duration: 2000, position: 'top-right' });
         onClose();
         navigate(`/${userData?.role || 'farmer'}`);
       } else {
@@ -31,7 +32,7 @@ export default function AuthModal({ isOpen, onClose }) {
         navigate(`/${userData?.role || 'farmer'}`);
       }
     } catch (err) {
-      toast.error(err.response?.data?.detail || t('auth.error'));
+      toast.error(getApiMessage(err, t('auth.error')));
     } finally {
       setLoading(false);
     }
@@ -56,13 +57,13 @@ export default function AuthModal({ isOpen, onClose }) {
           ))}
         </div>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-          <input id="auth-username" type="text" placeholder={t('auth.username')} required
+          <input id="auth-email" type="email" placeholder={t('auth.email')} required
             className="w-full px-3.5 py-2.5 rounded-lg bg-brand-elevated border border-brand-border text-brand-base text-sm outline-none focus:border-green-400 placeholder-brand-muted transition-all"
-            value={form.username} onChange={e => setForm({...form, username: e.target.value})} />
+            value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
           {mode === 'register' && (
-            <input id="auth-email" type="email" placeholder={t('auth.email')}
+            <input id="auth-username" type="text" placeholder={t('auth.username')} required
               className="w-full px-3.5 py-2.5 rounded-lg bg-brand-elevated border border-brand-border text-brand-base text-sm outline-none focus:border-green-400 placeholder-brand-muted transition-all"
-              value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
+              value={form.username} onChange={e => setForm({...form, username: e.target.value})} />
           )}
           <input id="auth-password" type="password" placeholder={t('auth.password')} required
             className="w-full px-3.5 py-2.5 rounded-lg bg-brand-elevated border border-brand-border text-brand-base text-sm outline-none focus:border-green-400 placeholder-brand-muted transition-all"

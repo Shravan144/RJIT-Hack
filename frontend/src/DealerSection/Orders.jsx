@@ -5,6 +5,8 @@ import {
   Loader2, ChevronDown, ChevronUp, User
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { getApiData, getApiMessage } from '../utils/apiMessage';
+import PaginationControls from '../components/PaginationControls';
 
 const STATUS_CONFIG = {
   pending:   { cls: 'bg-amber-400/10 border-amber-400/25 text-amber-400', icon: <Clock size={14} />, label: 'Pending' },
@@ -24,17 +26,49 @@ export default function DealerOrders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('all');
+  const [page, setPage] = useState(1);
+  const [pageMeta, setPageMeta] = useState({ count: 0, next: null, previous: null });
   const [expandedId, setExpandedId] = useState(null);
   const [updating, setUpdating] = useState(null);
+  const [tabCounts, setTabCounts] = useState({ all: 0, pending: 0, shipped: 0, delivered: 0 });
 
-  useEffect(() => { fetchOrders(); }, []);
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  useEffect(() => {
+    fetchOrders();
+  }, [tab, page]);
+
+  const fetchStats = async () => {
+    try {
+      const { data } = await api.get('/orders/stats/');
+      const stats = getApiData(data) || {};
+      setTabCounts({
+        all: stats.all || 0,
+        pending: stats.pending || 0,
+        shipped: stats.shipped || 0,
+        delivered: stats.delivered || 0,
+      });
+    } catch (err) {
+      toast.error(getApiMessage(err, 'Failed to load order counts'));
+    }
+  };
 
   const fetchOrders = async () => {
     try {
-      const { data } = await api.get('/orders/');
-      setOrders(data.results || data);
+      const params = {
+        page,
+        page_size: 10,
+      };
+      if (tab !== 'all') {
+        params.status = tab;
+      }
+      const { data } = await api.get('/orders/', { params });
+      setOrders(data.results || []);
+      setPageMeta({ count: data.count || 0, next: data.next, previous: data.previous });
     } catch (err) {
-      toast.error('Failed to load orders');
+      toast.error(getApiMessage(err, 'Failed to load orders'));
     } finally {
       setLoading(false);
     }
@@ -45,22 +79,15 @@ export default function DealerOrders() {
     try {
       await api.patch(`/orders/${orderId}/`, { status: newStatus });
       toast.success(`Order marked as ${newStatus}`);
+      fetchStats();
       fetchOrders();
     } catch (err) {
-      toast.error('Failed to update order');
+      toast.error(getApiMessage(err, 'Failed to update order'));
     } finally {
       setUpdating(null);
     }
   };
-
-  const filtered = orders.filter(o => tab === 'all' || o.status === tab);
-
-  const tabCounts = {
-    all: orders.length,
-    pending: orders.filter(o => o.status === 'pending').length,
-    shipped: orders.filter(o => o.status === 'shipped').length,
-    delivered: orders.filter(o => o.status === 'delivered').length,
-  };
+  const totalPages = Math.max(1, Math.ceil((pageMeta.count || 0) / 10));
 
   if (loading) {
     return (
@@ -86,7 +113,7 @@ export default function DealerOrders() {
       {/* Tabs */}
       <div className="flex gap-1 mb-6 overflow-x-auto pb-1 border-b border-brand-subtle">
         {TABS.map(t => (
-          <button key={t.key} onClick={() => setTab(t.key)}
+          <button key={t.key} onClick={() => { setTab(t.key); setPage(1); }}
             className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px whitespace-nowrap transition-all
               ${tab === t.key ? 'text-green-400 border-green-400' : 'text-brand-muted border-transparent hover:text-brand-base'}`}>
             {t.label}
@@ -98,14 +125,14 @@ export default function DealerOrders() {
       </div>
 
       {/* Order list */}
-      {filtered.length === 0 ? (
+      {orders.length === 0 ? (
         <div className="text-center py-20 text-brand-muted">
           <Package size={48} className="mx-auto mb-3 opacity-30" />
           <p className="text-lg font-medium">No orders found</p>
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          {filtered.map(order => {
+          {orders.map(order => {
             const st = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
             const isExpanded = expandedId === order.id;
             const isUpdating = updating === order.id;
@@ -181,6 +208,17 @@ export default function DealerOrders() {
               </div>
             );
           })}
+
+          <PaginationControls
+            page={page}
+            totalPages={totalPages}
+            count={pageMeta.count}
+            itemLabel="orders"
+            hasPrevious={!!pageMeta.previous}
+            hasNext={!!pageMeta.next}
+            onPrevious={() => setPage(p => Math.max(1, p - 1))}
+            onNext={() => setPage(p => p + 1)}
+          />
         </div>
       )}
     </div>

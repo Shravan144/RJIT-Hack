@@ -1,38 +1,39 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import AuthModal from './components/AuthModal';
 import LanguageToggle from './components/LanguageToggle';
-import Home from './pages/Home';
-import DealerSearch from './pages/DealerSearch';
-import DealerProfile from './pages/DealerProfile';
-import ProductSearch from './pages/ProductSearch';
-import ReportFiling from './pages/ReportFiling';
-import NotFound from './pages/NotFound';
 import { Toaster } from 'react-hot-toast';
 
-// Layout & Config
-import DashboardLayout from './components/DashboardLayout';
+const Home = lazy(() => import('./pages/Home'));
+const DealerSearch = lazy(() => import('./pages/DealerSearch'));
+const DealerProfile = lazy(() => import('./pages/DealerProfile'));
+const ProductSearch = lazy(() => import('./pages/ProductSearch'));
+const ReportFiling = lazy(() => import('./pages/ReportFiling'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+const DashboardLayout = lazy(() => import('./components/DashboardLayout'));
+const DataAnalyticsDashboard = lazy(() => import('./AdminSection/DataAnalyticsDashboard'));
+const HandleDealer = lazy(() => import('./AdminSection/HandleDealer'));
+const HandleComplaints = lazy(() => import('./AdminSection/HandleComplaints'));
+const AdminOrders = lazy(() => import('./AdminSection/AdminOrders'));
+const AdminProfile = lazy(() => import('./AdminSection/Profile'));
+const ComplaintManagement = lazy(() => import('./DealerSection/ComplaintManagement'));
+const DealerProducts = lazy(() => import('./DealerSection/Products'));
+const PrivateDealerProfile = lazy(() => import('./DealerSection/Profile'));
+const DealerOrders = lazy(() => import('./DealerSection/Orders'));
+const FarmerComplaintAndFraud = lazy(() => import('./FarmerSection/ComplaintAndFraud'));
+const FarmerDealerSearch = lazy(() => import('./FarmerSection/DealerSearch'));
+const FarmerProfile = lazy(() => import('./FarmerSection/Profile'));
+const FarmerOrders = lazy(() => import('./FarmerSection/Orders'));
 
-// Admin Pages
-import DataAnalyticsDashboard from './AdminSection/DataAnalyticsDashboard';
-import HandleDealer from './AdminSection/HandleDealer';
-import HandleComplaints from './AdminSection/HandleComplaints';
-import AdminOrders from './AdminSection/AdminOrders';
-import AdminProfile from './AdminSection/Profile';
-
-// Dealer Pages
-import ComplaintManagement from './DealerSection/ComplaintManagement';
-import DealerProducts from './DealerSection/Products';
-import PrivateDealerProfile from './DealerSection/Profile';
-import DealerOrders from './DealerSection/Orders';
-
-// Farmer Pages
-import FarmerComplaintAndFraud from './FarmerSection/ComplaintAndFraud';
-import FarmerDealerSearch from './FarmerSection/DealerSearch';
-import FarmerProfile from './FarmerSection/Profile';
-import FarmerOrders from './FarmerSection/Orders';
+function RouteLoader() {
+  return (
+    <div className="min-h-[40vh] flex items-center justify-center text-brand-muted text-sm">
+      Loading page...
+    </div>
+  );
+}
 
 export default function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -41,6 +42,7 @@ export default function App() {
   return (
     <>
       <Toaster position="top-right" containerStyle={{ zIndex: 99999, top: 70 }} toastOptions={{ duration: 2000 }} />
+      <Suspense fallback={<RouteLoader />}>
       <Routes>
         {/* Public Routes - Keep original Navbar layout here if desired, or let them manage their own */}
         <Route path="/" element={
@@ -128,6 +130,7 @@ export default function App() {
           </>
         } />
       </Routes>
+      </Suspense>
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </>
   );

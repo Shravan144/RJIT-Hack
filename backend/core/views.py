@@ -1,14 +1,42 @@
 from rest_framework import viewsets, permissions, filters, generics, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from django.db.models import Q, Count
+from django.core.cache import cache
+from django.conf import settings
+import time
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Dealer, AgriProduct, DealerProduct, Report, Review, District, Order, OrderItem
 from .serializers import (
     DealerListSerializer, DealerDetailSerializer,
     AgriProductSerializer, DealerProductSerializer,
     ReportSerializer, ReviewSerializer, DistrictSerializer,
-    OrderSerializer, OrderItemSerializer
+    OrderSerializer, OrderItemSerializer, DealerProductUpsertSerializer,
+    OrderCreateSerializer,
 )
+
+
+def success_response(message, data=None, status_code=status.HTTP_200_OK):
+    payload = {
+        'success': True,
+        'message': message,
+        'detail': message,
+    }
+    if data is not None:
+        payload['data'] = data
+    return Response(payload, status=status_code)
+
+
+def error_response(message, errors=None, status_code=status.HTTP_400_BAD_REQUEST):
+    payload = {
+        'success': False,
+        'message': message,
+        'detail': message,
+        'error': message,
+    }
+    if errors is not None:
+        payload['errors'] = errors
+    return Response(payload, status=status_code)
 
 
 class DealerPermission(permissions.BasePermission):
@@ -45,7 +73,7 @@ class DealerViewSet(viewsets.ModelViewSet):
     queryset = Dealer.objects.select_related('district').prefetch_related('reviews').all()
     permission_classes = [DealerPermission]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['license_status', 'district']
+    filterset_fields = ['license_status', 'district', 'is_approved', 'is_flagged']
     search_fields = ['name', 'shop_name', 'license_number', 'address', 'specializations']
     ordering_fields = ['trust_score', 'name', 'created_at']
     ordering = ['-trust_score']
@@ -61,8 +89,29 @@ class DealerViewSet(viewsets.ModelViewSet):
         # Admin sees ALL dealers (including unapproved, flagged)
         if user.is_authenticated and (user.is_staff or getattr(user, 'role', '') == 'admin'):
             return qs
+        # Dealer can always see their own profile, even before approval.
+        if user.is_authenticated and getattr(user, 'role', '') == 'dealer':
+            return qs.filter(Q(is_approved=True, is_flagged=False) | Q(user=user)).distinct()
         # Non-admin only sees approved & non-flagged dealers
         return qs.filter(is_approved=True, is_flagged=False)
+
+    @action(detail=False, methods=['get', 'patch'], url_path='me', permission_classes=[permissions.IsAuthenticated])
+    def me(self, request):
+        user = request.user
+        if getattr(user, 'role', '') != 'dealer' and not (user.is_staff or getattr(user, 'role', '') == 'admin'):
+            return error_response('Not allowed.', status_code=status.HTTP_403_FORBIDDEN)
+
+        dealer = Dealer.objects.filter(user=user).first()
+        if not dealer:
+            return error_response('Dealer profile not found.', status_code=status.HTTP_404_NOT_FOUND)
+
+        if request.method == 'GET':
+            return Response(DealerDetailSerializer(dealer).data)
+
+        serializer = DealerListSerializer(dealer, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return success_response('Dealer profile updated.', data=serializer.data)
 
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def review(self, request, pk=None):
@@ -77,8 +126,8 @@ class DealerViewSet(viewsets.ModelViewSet):
                 }
             )
             dealer.recalculate_trust_score()
-            return Response({'detail': 'Review submitted.'}, status=201)
-        return Response(serializer.errors, status=400)
+            return success_response('Review submitted.', status_code=status.HTTP_201_CREATED)
+        return error_response('Invalid review payload.', errors=serializer.errors)
 
     @action(detail=True, methods=['get', 'post'], permission_classes=[permissions.IsAuthenticated])
     def products(self, request, pk=None):
@@ -87,21 +136,28 @@ class DealerViewSet(viewsets.ModelViewSet):
         # If POST, a dealer is adding a product to their catalog
         if request.method == 'POST':
             if dealer.user != request.user:
-                return Response({"detail": "Not allowed"}, status=403)
-            # Make sure it's valid
-            product_id = request.data.get('product')
-            if not product_id:
-                return Response({"detail": "product ID required"}, status=400)
+                return error_response('Not allowed.', status_code=status.HTTP_403_FORBIDDEN)
+            input_serializer = DealerProductUpsertSerializer(data=request.data)
+            input_serializer.is_valid(raise_exception=True)
+            product = input_serializer.validated_data['product']
+            price = input_serializer.validated_data['price']
+            in_stock = input_serializer.validated_data.get('in_stock', True)
+
             dealer_product, created = DealerProduct.objects.get_or_create(
-                dealer=dealer, product_id=product_id,
-                defaults={'price': request.data.get('price', 0), 'in_stock': True}
+                dealer=dealer,
+                product=product,
+                defaults={'price': price, 'in_stock': in_stock},
             )
             if not created:
-                # Update existing
-                dealer_product.price = request.data.get('price', dealer_product.price)
-                dealer_product.in_stock = request.data.get('in_stock', dealer_product.in_stock)
+                dealer_product.price = price
+                dealer_product.in_stock = in_stock
                 dealer_product.save()
-            return Response(DealerProductSerializer(dealer_product).data, status=201 if created else 200)
+            message = 'Product added to catalog.' if created else 'Product updated in catalog.'
+            return success_response(
+                message,
+                data=DealerProductSerializer(dealer_product).data,
+                status_code=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
+            )
 
         # Normal GET - return all products (not just in_stock) for the dealer's own view
         dealer_products = DealerProduct.objects.filter(dealer=dealer).select_related('product')
@@ -117,13 +173,13 @@ class DealerViewSet(viewsets.ModelViewSet):
         """Remove a product from dealer's catalog."""
         dealer = self.get_object()
         if dealer.user != request.user and not (request.user.is_staff or getattr(request.user, 'role', '') == 'admin'):
-            return Response({"detail": "Not allowed"}, status=403)
+            return error_response('Not allowed.', status_code=status.HTTP_403_FORBIDDEN)
         try:
             dealer_product = DealerProduct.objects.get(dealer=dealer, pk=product_pk)
             dealer_product.delete()
-            return Response({'detail': 'Product removed from catalog.'}, status=204)
+            return success_response('Product removed from catalog.', status_code=status.HTTP_200_OK)
         except DealerProduct.DoesNotExist:
-            return Response({'detail': 'Product not found.'}, status=404)
+            return error_response('Product not found.', status_code=status.HTTP_404_NOT_FOUND)
 
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAdminUser])
     def approve(self, request, pk=None):
@@ -131,7 +187,7 @@ class DealerViewSet(viewsets.ModelViewSet):
         dealer.is_approved = True
         dealer.license_status = 'active'
         dealer.save(update_fields=['is_approved', 'license_status'])
-        return Response({'detail': f'{dealer.shop_name} has been approved.'})
+        return success_response(f'{dealer.shop_name} has been approved.')
 
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAdminUser])
     def reject(self, request, pk=None):
@@ -139,7 +195,7 @@ class DealerViewSet(viewsets.ModelViewSet):
         dealer.is_approved = False
         dealer.license_status = 'suspended'
         dealer.save(update_fields=['is_approved', 'license_status'])
-        return Response({'detail': f'{dealer.shop_name} has been rejected.'})
+        return success_response(f'{dealer.shop_name} has been rejected.')
 
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAdminUser])
     def flag(self, request, pk=None):
@@ -149,7 +205,10 @@ class DealerViewSet(viewsets.ModelViewSet):
             dealer.license_status = 'suspended'
         dealer.save(update_fields=['is_flagged', 'license_status'])
         action_str = 'red-flagged' if dealer.is_flagged else 'unflagged'
-        return Response({'detail': f'{dealer.shop_name} has been {action_str}.', 'is_flagged': dealer.is_flagged})
+        return success_response(
+            f'{dealer.shop_name} has been {action_str}.',
+            data={'is_flagged': dealer.is_flagged},
+        )
 
     @action(detail=False, methods=['get'], permission_classes=[permissions.IsAdminUser])
     def admin_stats(self, request):
@@ -161,11 +220,12 @@ class DealerViewSet(viewsets.ModelViewSet):
         suspended = Dealer.objects.filter(license_status='suspended').count()
         total_reports = Report.objects.count()
         pending_reports = Report.objects.filter(status='pending').count()
+        under_review_reports = Report.objects.filter(status='under_review').count()
         verified_reports = Report.objects.filter(status='verified').count()
         dismissed_reports = Report.objects.filter(status='dismissed').count()
         return Response({
             'dealers': {'total': total, 'approved': approved, 'pending_approval': pending, 'flagged': flagged, 'active': active, 'suspended': suspended},
-            'reports': {'total': total_reports, 'pending': pending_reports, 'verified': verified_reports, 'dismissed': dismissed_reports},
+            'reports': {'total': total_reports, 'pending': pending_reports, 'under_review': under_review_reports, 'verified': verified_reports, 'dismissed': dismissed_reports},
         })
 
 
@@ -181,19 +241,20 @@ class AgriProductViewSet(viewsets.ReadOnlyModelViewSet):
     def by_barcode(self, request):
         barcode = request.query_params.get('barcode')
         if not barcode:
-            return Response({'error': 'barcode param required'}, status=400)
+            return error_response('barcode param required', status_code=status.HTTP_400_BAD_REQUEST)
         try:
             product = AgriProduct.objects.get(barcode=barcode)
             return Response(AgriProductSerializer(product).data)
         except AgriProduct.DoesNotExist:
-            return Response({'error': 'Product not found'}, status=404)
+            return error_response('Product not found', status_code=status.HTTP_404_NOT_FOUND)
 
 
 class ReportViewSet(viewsets.ModelViewSet):
     queryset = Report.objects.select_related('dealer', 'product', 'reporter').all()
     serializer_class = ReportSerializer
-    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['status', 'category', 'dealer']
+    search_fields = ['description', 'dealer__shop_name', 'reporter__username']
     ordering = ['-created_at']
 
     def get_permissions(self):
@@ -201,7 +262,18 @@ class ReportViewSet(viewsets.ModelViewSet):
             return [permissions.AllowAny()]
         if self.action in ['update', 'partial_update', 'destroy']:
             return [permissions.IsAdminUser()]
-        return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        user = self.request.user
+        if not user.is_authenticated:
+            return qs.none()
+        if user.is_staff or getattr(user, 'role', '') == 'admin':
+            return qs
+        if getattr(user, 'role', '') == 'dealer':
+            return qs.filter(dealer__user=user)
+        return qs.filter(reporter=user)
 
     def perform_create(self, serializer):
         reporter = self.request.user if self.request.user.is_authenticated else None
@@ -210,18 +282,24 @@ class ReportViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['patch'], permission_classes=[permissions.IsAdminUser])
     def update_status(self, request, pk=None):
         report = self.get_object()
+        previous_status = report.status
         new_status = request.data.get('status')
         admin_notes = request.data.get('admin_notes', '')
         if new_status not in dict(Report.STATUS_CHOICES):
-            return Response({'error': 'Invalid status'}, status=400)
+            return error_response('Invalid status', status_code=status.HTTP_400_BAD_REQUEST)
         report.status = new_status
         report.admin_notes = admin_notes
         report.save()
-        if new_status == 'verified':
+
+        if previous_status != 'verified' and new_status == 'verified':
             report.dealer.verified_reports += 1
             report.dealer.save(update_fields=['verified_reports'])
-            report.dealer.recalculate_trust_score()
-        return Response(ReportSerializer(report).data)
+        elif previous_status == 'verified' and new_status != 'verified':
+            report.dealer.verified_reports = max(0, report.dealer.verified_reports - 1)
+            report.dealer.save(update_fields=['verified_reports'])
+
+        report.dealer.recalculate_trust_score()
+        return success_response('Report status updated.', data=ReportSerializer(report).data)
 
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.select_related('farmer', 'dealer').prefetch_related('items__product').all()
@@ -229,6 +307,11 @@ class OrderViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['status', 'farmer', 'dealer']
     ordering = ['-created_at']
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return OrderCreateSerializer
+        return OrderSerializer
 
     def get_permissions(self):
         if self.action in ['destroy']:
@@ -247,20 +330,37 @@ class OrderViewSet(viewsets.ModelViewSet):
         return qs.filter(farmer=user)
 
     def create(self, request, *args, **kwargs):
-        items_data = request.data.pop('items', [])
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        order = serializer.save(farmer=request.user)
-        
-        for item in items_data:
-            OrderItem.objects.create(
-                order=order,
-                product_id=item['product'],
-                quantity=item.get('quantity', 1),
-                price_at_time=item.get('price_at_time', 0),
-            )
-        
+        order = serializer.save()
         return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    def stats(self, request):
+        user = request.user
+        ttl = max(1, int(getattr(settings, 'ORDER_STATS_CACHE_TTL', 20)))
+        bucket = int(time.time() // ttl)
+        scope = f"{getattr(user, 'role', 'anon')}:{user.id}"
+        if user.is_staff or getattr(user, 'role', '') == 'admin':
+            scope = 'admin'
+        cache_key = f"orders:stats:v1:{bucket}:{scope}"
+
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return success_response('Order stats fetched.', data=cached_data)
+
+        scoped_qs = self.get_queryset()
+        grouped = scoped_qs.values('status').annotate(count=Count('id'))
+        counts_by_status = {row['status']: row['count'] for row in grouped}
+        data = {
+            'all': sum(counts_by_status.values()),
+            'pending': counts_by_status.get('pending', 0),
+            'shipped': counts_by_status.get('shipped', 0),
+            'delivered': counts_by_status.get('delivered', 0),
+            'cancelled': counts_by_status.get('cancelled', 0),
+        }
+        cache.set(cache_key, data, timeout=ttl)
+        return success_response('Order stats fetched.', data=data)
 
     def update(self, request, *args, **kwargs):
         order = self.get_object()
@@ -270,7 +370,7 @@ class OrderViewSet(viewsets.ModelViewSet):
             return super().update(request, *args, **kwargs)
         if user.is_staff or getattr(user, 'role', '') == 'admin':
             return super().update(request, *args, **kwargs)
-        return Response({'detail': 'Not allowed'}, status=status.HTTP_403_FORBIDDEN)
+        return error_response('Not allowed', status_code=status.HTTP_403_FORBIDDEN)
 
     def partial_update(self, request, *args, **kwargs):
         order = self.get_object()
@@ -279,5 +379,5 @@ class OrderViewSet(viewsets.ModelViewSet):
             return super().partial_update(request, *args, **kwargs)
         if user.is_staff or getattr(user, 'role', '') == 'admin':
             return super().partial_update(request, *args, **kwargs)
-        return Response({'detail': 'Not allowed'}, status=status.HTTP_403_FORBIDDEN)
+        return error_response('Not allowed', status_code=status.HTTP_403_FORBIDDEN)
 

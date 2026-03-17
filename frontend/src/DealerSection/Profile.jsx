@@ -6,6 +6,7 @@ import {
   Package, MapPin, Camera, Clock, AlertTriangle, XCircle, Save, Loader2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { getApiMessage } from '../utils/apiMessage';
 
 export default function PrivateDealerProfile() {
   const { user } = useAuth();
@@ -25,18 +26,16 @@ export default function PrivateDealerProfile() {
 
   const fetchDealerProfile = async () => {
     try {
-      const { data } = await api.get('/dealers/', { params: { page_size: 200 } });
-      const dealers = data.results || data;
-      const myDealer = dealers.find(d => d.name === user?.username || d.shop_name?.includes(user?.username));
-      if (myDealer) {
-        setDealer(myDealer);
+      const { data } = await api.get('/dealers/me/');
+      if (data) {
+        setDealer(data);
         setFormData({
-          name: myDealer.name || '',
-          shop_name: myDealer.shop_name || '',
-          phone: myDealer.phone || '',
-          address: myDealer.address || '',
-          license_number: myDealer.license_number || '',
-          specializations: myDealer.specializations || '',
+          name: data.name || '',
+          shop_name: data.shop_name || '',
+          phone: data.phone || '',
+          address: data.address || '',
+          license_number: data.license_number || '',
+          specializations: data.specializations || '',
         });
       }
     } catch (err) {
@@ -51,12 +50,15 @@ export default function PrivateDealerProfile() {
     if (!dealer) return;
     setSaving(true);
     try {
-      await api.patch(`/dealers/${dealer.id}/`, formData);
+      const { data } = await api.patch('/dealers/me/', formData);
+      const updatedDealer = data?.data || data;
+      if (updatedDealer) {
+        setDealer(prev => ({ ...(prev || {}), ...updatedDealer }));
+      }
       toast.success('Profile updated successfully!');
       setEditing(false);
-      fetchDealerProfile();
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'Failed to update profile');
+      toast.error(getApiMessage(err, 'Failed to update profile'));
     } finally {
       setSaving(false);
     }

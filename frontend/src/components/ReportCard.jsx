@@ -2,66 +2,68 @@ import { AlertTriangle, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { useTranslation } from "react-i18next";
 
 const STATUS_BTN = {
-  pending:      'hover:border-amber-400 hover:text-amber-400',
-  under_review: 'hover:border-blue-400 hover:text-blue-400',
-  verified:     'hover:border-green-400 hover:text-green-400',
-  dismissed:    'hover:border-brand-muted hover:text-brand-muted',
+  pending:      'hover:border-amber-400 hover:bg-amber-50 hover:text-amber-600',
+  under_review: 'hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600',
+  verified:     'hover:border-emerald-400 hover:bg-emerald-50 hover:text-emerald-600',
+  dismissed:    'hover:border-slate-400 hover:bg-brand-bg hover:text-slate-600',
 };
 
 export default function ReportCard({ report, onUpdateStatus }) {
   const { t } = useTranslation();
 
   const STATUS_CONFIG = {
-    pending:      { icon: <Clock size={13} />,         cls: 'bg-amber-400/10 border-amber-400/25 text-amber-400',  label: t('adminDashboard.pending') },
-    under_review: { icon: <AlertTriangle size={13} />, cls: 'bg-blue-400/10 border-blue-400/25 text-blue-400',     label: 'Under Review' },
-    verified:     { icon: <CheckCircle size={13} />,   cls: 'bg-green-400/10 border-green-400/25 text-green-400', label: t('adminDashboard.verified') },
-    dismissed:    { icon: <XCircle size={13} />,       cls: 'bg-brand-elevated border-brand-border text-brand-muted', label: 'Dismissed' },
+    pending:      { icon: <Clock size={14} />,         cls: 'bg-amber-50 border-amber-200 text-amber-600',  label: t('adminDashboard.pending') || 'Pending' },
+    under_review: { icon: <AlertTriangle size={14} />, cls: 'bg-blue-50 border-blue-200 text-blue-600',     label: 'Under Review' },
+    verified:     { icon: <CheckCircle size={14} />,   cls: 'bg-emerald-50 border-emerald-200 text-emerald-600', label: t('adminDashboard.verified') || 'Verified' },
+    dismissed:    { icon: <XCircle size={14} />,       cls: 'bg-slate-100 border-brand-border text-brand-muted', label: 'Dismissed' },
   };
 
   const CATEGORY_LABELS = {
-    fake_product:    t('reportFiling.catFake'),
-    overpricing:     t('reportFiling.catOverprice'),
-    unlicensed:      t('reportFiling.catUnlicensed'),
-    expired_product: t('reportFiling.catExpired'),
-    wrong_advice:    t('reportFiling.catWrongAdvice'),
-    other:           t('reportFiling.catOther'),
+    fake_product:    t('reportFiling.catFake') || 'Fake Product',
+    overpricing:     t('reportFiling.catOverprice') || 'Overpricing',
+    unlicensed:      t('reportFiling.catUnlicensed') || 'Unlicensed',
+    expired_product: t('reportFiling.catExpired') || 'Expired Product',
+    wrong_advice:    t('reportFiling.catWrongAdvice') || 'Wrong Advice',
+    other:           t('reportFiling.catOther') || 'Other',
   };
 
   const cfg = STATUS_CONFIG[report.status] || STATUS_CONFIG.pending;
 
   return (
     <div id={`report-card-${report.id}`}
-      className="flex flex-col gap-3 bg-brand-elevated border border-brand-subtle rounded-2xl p-4 hover:border-brand-border transition-all">
+      className="flex flex-col gap-4 bg-brand-surface border border-brand-border rounded-2xl p-5 hover:border-emerald-200 hover:shadow-md transition-all">
 
       <div className="flex justify-between items-start">
-        <div className="flex flex-col gap-0.5">
-          <span className="text-[11px] text-brand-muted">#{report.id}</span>
-          <span className="font-bold text-brand-base text-sm">{report.dealer_name}</span>
+        <div className="flex flex-col gap-1">
+          <span className="text-[10px] font-bold tracking-wider uppercase text-slate-400">REPORT #{report.id}</span>
+          <span className="font-bold text-brand-base text-base">{report.dealer_name}</span>
         </div>
-        <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-semibold ${cfg.cls}`}>
+        <div className={`flex items-center gap-1.5 px-3 py-1 rounded-md border text-[11px] font-bold uppercase tracking-wide ${cfg.cls}`}>
           {cfg.icon} {cfg.label}
         </div>
       </div>
 
-      <p className="text-xs font-semibold text-brand-muted">
-        {CATEGORY_LABELS[report.category] || report.category}
-      </p>
-      <p className="text-sm text-brand-muted line-clamp-3">{report.description}</p>
+      <div>
+        <span className="inline-block px-2.5 py-1 bg-slate-100 text-brand-base text-[10px] font-bold uppercase tracking-wider rounded-md mb-2">
+          {CATEGORY_LABELS[report.category] || report.category}
+        </span>
+        <p className="text-sm text-slate-600 line-clamp-3 leading-relaxed">{report.description}</p>
+      </div>
 
-      <div className="flex justify-between text-[11px] text-brand-muted">
-        <span>{t('components.by')}: {report.reporter_name || t('components.anonymous')}</span>
+      <div className="flex justify-between items-center text-[11px] font-medium tracking-wide text-brand-muted border-t border-brand-subtle pt-3 mt-1">
+        <span className="uppercase">{t('components.by') || 'BY'}: <span className="text-brand-base font-bold">{report.reporter_name || t('components.anonymous') || 'ANONYMOUS'}</span></span>
         <span>{new Date(report.created_at).toLocaleDateString()}</span>
       </div>
 
       {onUpdateStatus && (
-        <div className="flex flex-wrap gap-1.5 pt-2 border-t border-brand-subtle">
+        <div className="flex flex-wrap gap-2 pt-3 border-t border-brand-subtle mt-1">
           {['pending', 'under_review', 'verified', 'dismissed'].map(s => (
             <button key={s} id={`report-${report.id}-status-${s}`}
               onClick={() => onUpdateStatus(report.id, s)}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold capitalize border transition-all
+              className={`px-3 py-1.5 rounded-lg text-[11px] font-bold tracking-wide uppercase border transition-all
                 ${report.status === s
-                  ? 'bg-green-400/20 border-green-400 text-green-400'
-                  : `bg-brand-card border-brand-border text-brand-muted ${STATUS_BTN[s]}`}`}>
+                  ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-sm'
+                  : `bg-brand-surface border-brand-border text-brand-muted ${STATUS_BTN[s]}`}`}>
               {s.replace('_', ' ')}
             </button>
           ))}

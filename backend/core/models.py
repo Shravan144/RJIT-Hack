@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.db.models import Avg
 import uuid
 
 
@@ -46,13 +47,25 @@ class Dealer(models.Model):
     def __str__(self):
         return f"{self.shop_name} ({self.license_number})"
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['is_approved', 'is_flagged']),
+            models.Index(fields=['license_status']),
+            models.Index(fields=['trust_score']),
+        ]
+
     def recalculate_trust_score(self):
-        """Recalculate trust score based on verified reports and complaints."""
-        base = 5.0
+        """Trust score blends complaint quality and community review signal."""
+        complaint_penalty = 0.0
         if self.total_reports > 0:
-            complaint_ratio = self.verified_reports / self.total_reports
-            base = max(1.0, 5.0 - (complaint_ratio * 4.0))
-        self.trust_score = round(base, 1)
+            verified_ratio = self.verified_reports / self.total_reports
+            complaint_penalty = verified_ratio * 2.0
+
+        avg_rating = self.reviews.aggregate(avg=Avg('rating'))['avg']
+        rating_bonus = 0.0 if avg_rating is None else (float(avg_rating) - 3.0) * 0.75
+
+        score = 4.0 + rating_bonus - complaint_penalty
+        self.trust_score = round(min(5.0, max(1.0, score)), 1)
         self.save(update_fields=['trust_score'])
 
 
@@ -137,6 +150,12 @@ class Report(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['status']),
+            models.Index(fields=['category']),
+            models.Index(fields=['dealer']),
+            models.Index(fields=['-created_at']),
+        ]
 
 
 class Review(models.Model):
@@ -173,6 +192,14 @@ class Order(models.Model):
 
     def __str__(self):
         return f"Order #{self.pk} by {self.farmer.username} from {self.dealer.shop_name}"
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['status']),
+            models.Index(fields=['dealer']),
+            models.Index(fields=['farmer']),
+            models.Index(fields=['-created_at']),
+        ]
 
 
 class OrderItem(models.Model):

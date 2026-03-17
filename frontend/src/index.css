@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,35 +6,29 @@
 
 @layer base {
   :root {
-    --color-brand-bg: hsl(0, 0%, 99%);
-    --color-brand-surface: hsl(0, 0%, 99%);
-    --color-brand-elevated: hsl(0, 0%, 100%);
-    --color-brand-card: hsl(0, 0%, 100%);
-    --color-brand-border: hsl(214, 32%, 91%);
-    --color-brand-subtle: hsl(210, 40%, 96%);
+    --color-brand-bg: #f8fafc;        /* slate-50 */
+    --color-brand-surface: #ffffff;   /* white */
+    --color-brand-elevated: #ffffff;  /* white */
+    --color-brand-card: #ffffff;      /* white */
+    --color-brand-border: #e2e8f0;    /* slate-200 */
+    --color-brand-subtle: #f1f5f9;    /* slate-100 */
     
-    --color-text-base: hsl(222, 47%, 11%);
-    --color-text-muted: hsl(215, 16%, 47%);
-    --color-text-inverted: hsl(0, 0%, 100%);
-
-    --bg-gradient-hero: linear-gradient(135deg, hsla(142, 60%, 85%, 0.4) 0%, hsl(0, 0%, 98%) 60%);
-    --bg-gradient-card: linear-gradient(145deg, hsl(0, 0%, 100%), hsl(0, 0%, 98%));
+    --color-text-base: #0f172a;       /* slate-900 */
+    --color-text-muted: #64748b;      /* slate-500 */
+    --color-text-inverted: #ffffff;   /* white */
   }
 
   .dark {
-    --color-brand-bg: hsl(220, 16%, 8%);
-    --color-brand-surface: hsl(220, 16%, 12%);
-    --color-brand-elevated: hsl(220, 14%, 16%);
-    --color-brand-card: hsl(220, 12%, 18%);
-    --color-brand-border: hsl(220, 14%, 24%);
-    --color-brand-subtle: hsl(220, 14%, 20%);
+    --color-brand-bg: #0f172a;        /* slate-900 */
+    --color-brand-surface: #1e293b;   /* slate-800 */
+    --color-brand-elevated: #334155;  /* slate-700 */
+    --color-brand-card: #1e293b;      /* slate-800 */
+    --color-brand-border: #334155;    /* slate-700 */
+    --color-brand-subtle: #1e293b;    /* slate-800 */
 
-    --color-text-base: hsl(210, 40%, 98%);
-    --color-text-muted: hsl(215, 20%, 65%);
-    --color-text-inverted: hsl(222, 47%, 11%);
-
-    --bg-gradient-hero: linear-gradient(135deg, hsl(142, 60%, 10%) 0%, hsl(220, 16%, 8%) 60%);
-    --bg-gradient-card: linear-gradient(145deg, hsl(220, 14%, 16%), hsl(220, 12%, 18%));
+    --color-text-base: #f8fafc;       /* slate-50 */
+    --color-text-muted: #94a3b8;      /* slate-400 */
+    --color-text-inverted: #0f172a;   /* slate-900 */
   }
 
   *, *::before, *::after { box-sizing: border-box; }
@@ -46,22 +40,44 @@
   }
 
   a { @apply no-underline; }
+
+  #root {
+    isolation: isolate;
+  }
 }
 
 @layer utilities {
   .gradient-text {
-    background: linear-gradient(135deg, hsl(142,76%,36%), hsl(173,80%,40%));
+    background: linear-gradient(135deg, theme(colors.emerald.700), theme(colors.emerald.500));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
   .bg-gradient-primary {
-    background: linear-gradient(135deg, hsl(142,76%,36%), hsl(173,80%,40%));
+    background: linear-gradient(130deg, theme(colors.emerald.600), theme(colors.emerald.500));
   }
 
+  .card-soft {
+    background: var(--color-brand-surface);
+    border: 1px solid var(--color-brand-border);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .stagger-in {
+    animation: fadeSlideIn 0.6s ease both;
+  }
+
+  .stagger-in:nth-child(2) { animation-delay: 0.06s; }
+  .stagger-in:nth-child(3) { animation-delay: 0.12s; }
+  .stagger-in:nth-child(4) { animation-delay: 0.18s; }
+
   .skeleton-shimmer {
-    background: linear-gradient(90deg, hsl(220,14%,16%) 25%, hsl(220,12%,18%) 50%, hsl(220,14%,16%) 75%);
+    background: linear-gradient(90deg, var(--color-brand-subtle) 25%, var(--color-brand-border) 50%, var(--color-brand-subtle) 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
   }
@@ -72,11 +88,11 @@
   }
 
   @keyframes fadeDown {
-    from { opacity: 0; transform: translateY(-6px); }
+    from { opacity: 0; transform: translateY(-10px); }
     to   { opacity: 1; transform: translateY(0); }
   }
 
-  .animate-fade-down { animation: fadeDown 0.15s ease; }
+  .animate-fade-down { animation: fadeDown 0.3s ease-out forwards; }
 
   @keyframes dotPulse {
     0%, 100% { transform: scale(1); opacity: 0.7; }
@@ -84,4 +100,15 @@
   }
 
   .animate-dot-pulse { animation: dotPulse 2s infinite; }
+
+  @keyframes fadeSlideIn {
+    0% {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }

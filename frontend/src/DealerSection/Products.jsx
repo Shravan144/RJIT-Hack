@@ -3,6 +3,7 @@ import { Plus, Search, Filter, Edit, Trash2, Image as ImageIcon, X, Printer, Dow
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
+import { getApiData, getApiMessage } from '../utils/apiMessage';
 
 const Barcode = ({ value, width = 1.5, height = 40, showValue = true, jsBarcodeLoaded, dynamicId }) => {
   const canvasRef = useRef(null);
@@ -58,10 +59,8 @@ export default function DealerProducts() {
   const fetchDealerProducts = async () => {
     try {
       setLoading(true);
-      // First get the dealer profile for this user
-      const dealerRes = await api.get('/dealers/');
-      const dealers = dealerRes.data.results || dealerRes.data;
-      const myDealer = dealers.find(d => d.user === user?.id);
+      const dealerRes = await api.get('/dealers/me/');
+      const myDealer = dealerRes.data;
       
       if (myDealer) {
         setDealerId(myDealer.id);
@@ -110,7 +109,7 @@ export default function DealerProducts() {
     if (window.confirm("Are you sure you want to remove this product?")) {
       setDeletingId(id);
       try {
-        await api.delete(`/dealers/${dealerId}/remove_product/${id}/`);
+        await api.delete(`/dealers/${dealerId}/products/${id}/`);
         setProducts(products.filter(p => p.id !== id));
         toast.success('Product removed');
       } catch (err) {
@@ -133,12 +132,13 @@ export default function DealerProducts() {
         in_stock: true
       });
       toast.success('Product added to your catalog');
-      setProducts([...products, res.data]);
+      const createdOrUpdated = getApiData(res.data);
+      setProducts([...products, createdOrUpdated]);
       setIsAddProductModalOpen(false);
       setSelectedProductId('');
       setProductPrice('');
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'Failed to add product');
+      toast.error(getApiMessage(err, 'Failed to add product'));
     } finally {
       setSaving(false);
     }
@@ -261,7 +261,7 @@ export default function DealerProducts() {
                     <span className="font-space font-bold truncate flex mt-0.5 items-center gap-1">{dealerProduct.in_stock ? 'In Stock' : 'Out of Stock'}</span>
                   </div>
                 </div>
-                <div onClick={() => { setActiveBarcodeProd(product); setBarcodeModalOpen(true); }} className="bg-[#f5f0e8] rounded-lg p-2 flex justify-center cursor-pointer hover:bg-white border-2 border-transparent hover:border-amber-400 transition-colors">
+                <div onClick={() => { setActiveBarcodeProd(product); setBarcodeModalOpen(true); }} className="bg-[#f5f0e8] rounded-lg p-2 flex justify-center cursor-pointer hover:bg-brand-surface border-2 border-transparent hover:border-amber-400 transition-colors">
                   <Barcode value={product.barcode || dealerProduct.id} width={1.2} height={35} showValue={false} jsBarcodeLoaded={jsBarcodeLoaded} />
                 </div>
                 <div className="text-center mt-1"><span className="font-space text-[10px] text-[#7a997a]">{product.barcode || product.id}</span></div>
@@ -327,7 +327,7 @@ export default function DealerProducts() {
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
           <div className="bg-[#f5f0e8] rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl relative animate-fade-down print:shadow-none print:w-full">
             <button onClick={() => setBarcodeModalOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-900 z-10 print:hidden"><X size={24} /></button>
-            <div className="print-area p-8 text-center bg-white flex flex-col items-center border-b border-gray-200">
+            <div className="print-area p-8 text-center bg-brand-surface flex flex-col items-center border-b border-gray-200">
               <Package size={32} className="text-amber-500 mb-2"/>
               <h2 className="font-barlow text-3xl font-bold text-gray-900">{activeBarcodeProd.name}</h2>
               <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-6">{activeBarcodeProd.brand || activeBarcodeProd.manufacturer}</p>
@@ -336,7 +336,7 @@ export default function DealerProducts() {
             </div>
             <div className="bg-gray-50 flex gap-2 p-4 print:hidden">
               <button onClick={downloadBarcode} className="flex-1 flex justify-center items-center gap-2 bg-[#1a2e1a] text-white py-3 rounded-lg font-bold hover:bg-[#2d4a2d] transition-colors"><Download size={18}/> Save</button>
-              <button onClick={() => window.print()} className="flex-1 flex justify-center items-center gap-2 border-2 border-gray-300 text-gray-700 py-3 rounded-lg font-bold hover:bg-white transition-colors"><Printer size={18}/> Print</button>
+              <button onClick={() => window.print()} className="flex-1 flex justify-center items-center gap-2 border-2 border-gray-300 text-gray-700 py-3 rounded-lg font-bold hover:bg-brand-surface transition-colors"><Printer size={18}/> Print</button>
             </div>
           </div>
         </div>

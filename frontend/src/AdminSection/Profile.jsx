@@ -7,6 +7,9 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+const inputCls = "w-full px-4 py-3 rounded-xl bg-brand-bg border border-brand-border text-brand-base text-sm outline-none focus:border-emerald-500 focus:bg-brand-surface placeholder-slate-400 transition-all";
+const labelCls = "text-sm font-bold text-brand-base mb-1.5 flex items-center gap-2";
+
 export default function AdminProfile() {
   const { user } = useAuth();
   const [profile, setProfile] = useState(null);
@@ -56,27 +59,27 @@ export default function AdminProfile() {
     return (
       <div className="p-8">
         <div className="max-w-2xl">
-          <div className="h-8 w-64 rounded-lg skeleton-shimmer mb-6" />
-          <div className="h-48 rounded-2xl skeleton-shimmer" />
+          <div className="h-8 w-64 rounded-lg bg-slate-200 animate-pulse mb-6" />
+          <div className="h-48 rounded-2xl bg-brand-surface border border-brand-subtle shadow-sm animate-pulse" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-8 max-w-3xl">
+    <div className="p-4 md:p-8 max-w-3xl mx-auto">
       {/* Header */}
-      <div className="flex items-center gap-4 mb-8">
-        <div className="w-16 h-16 rounded-2xl bg-gradient-primary flex items-center justify-center text-white text-2xl font-black shadow-glow">
+      <div className="flex items-center gap-5 mb-10">
+        <div className="w-20 h-20 rounded-2xl bg-slate-900 flex items-center justify-center text-white text-3xl font-display font-bold shadow-md">
           {user?.username?.[0]?.toUpperCase() || 'A'}
         </div>
         <div>
-          <h1 className="font-display font-black text-3xl text-brand-base">{user?.username}</h1>
-          <div className="flex items-center gap-2 mt-1">
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-400/10 border border-amber-400/25 text-amber-400 text-xs font-bold uppercase tracking-wider">
-              <Shield size={11} /> Admin
+          <h1 className="font-display font-bold text-3xl md:text-4xl text-brand-base tracking-tight">{user?.username}</h1>
+          <div className="flex items-center gap-3 mt-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 border border-emerald-200 text-emerald-700 text-xs font-bold uppercase tracking-widest">
+              <Shield size={12} className="stroke-2" /> Admin
             </span>
-            <span className="text-brand-muted text-sm">
+            <span className="text-brand-muted text-sm font-medium border-l border-brand-border pl-3">
               Member since {profile?.date_joined ? new Date(profile.date_joined).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' }) : '—'}
             </span>
           </div>
@@ -84,61 +87,63 @@ export default function AdminProfile() {
       </div>
 
       {/* Profile Card */}
-      <div className="bg-brand-surface border border-brand-subtle rounded-2xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-brand-subtle bg-brand-elevated/50">
-          <h2 className="font-bold text-brand-base flex items-center gap-2">
-            <UserCircle size={18} className="text-green-400" />
+      <div className="bg-brand-surface border border-brand-border rounded-3xl overflow-hidden shadow-sm shadow-[0_2px_12px_-4px_rgba(0,0,0,0.05)]">
+        <div className="px-8 py-5 border-b border-brand-subtle bg-brand-bg">
+          <h2 className="font-bold text-brand-base flex items-center gap-2.5 text-lg">
+            <UserCircle size={20} className="text-emerald-500" />
             Profile Settings
           </h2>
         </div>
 
-        <form onSubmit={handleSave} className="p-6 flex flex-col gap-5">
+        <form onSubmit={handleSave} className="p-8 flex flex-col gap-6">
           {/* Username (read-only) */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-semibold text-brand-muted">Username</label>
-            <div className="px-3.5 py-2.5 rounded-lg bg-brand-elevated border border-brand-border text-brand-muted text-sm">
+          <div className="flex flex-col">
+            <label className={labelCls}>Username</label>
+            <div className="px-4 py-3 rounded-xl bg-brand-bg border border-brand-border text-brand-muted text-sm font-medium">
               {user?.username}
             </div>
           </div>
 
-          {/* Email */}
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="admin-email" className="text-sm font-semibold text-brand-muted flex items-center gap-1.5">
-              <Mail size={13} /> Email
-            </label>
-            <input
-              id="admin-email"
-              type="email"
-              className="w-full px-3.5 py-2.5 rounded-lg bg-brand-elevated border border-brand-border text-brand-base text-sm outline-none focus:border-green-400 placeholder-brand-muted transition-all"
-              value={form.email}
-              onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))}
-              placeholder="admin@agriverify.com"
-            />
-          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Email */}
+            <div className="flex flex-col">
+              <label htmlFor="admin-email" className={labelCls}>
+                <Mail size={16} className="text-slate-400" /> Email
+              </label>
+              <input
+                id="admin-email"
+                type="email"
+                className={inputCls}
+                value={form.email}
+                onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))}
+                placeholder="admin@agriverify.com"
+              />
+            </div>
 
-          {/* Phone */}
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="admin-phone" className="text-sm font-semibold text-brand-muted flex items-center gap-1.5">
-              <Phone size={13} /> Phone
-            </label>
-            <input
-              id="admin-phone"
-              type="tel"
-              className="w-full px-3.5 py-2.5 rounded-lg bg-brand-elevated border border-brand-border text-brand-base text-sm outline-none focus:border-green-400 placeholder-brand-muted transition-all"
-              value={form.phone}
-              onChange={(e) => setForm(f => ({ ...f, phone: e.target.value }))}
-              placeholder="+91 12345 67890"
-            />
+            {/* Phone */}
+            <div className="flex flex-col">
+              <label htmlFor="admin-phone" className={labelCls}>
+                <Phone size={16} className="text-slate-400" /> Phone
+              </label>
+              <input
+                id="admin-phone"
+                type="tel"
+                className={inputCls}
+                value={form.phone}
+                onChange={(e) => setForm(f => ({ ...f, phone: e.target.value }))}
+                placeholder="+91 12345 67890"
+              />
+            </div>
           </div>
 
           {/* Language */}
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="admin-language" className="text-sm font-semibold text-brand-muted flex items-center gap-1.5">
-              <Globe size={13} /> Preferred Language
+          <div className="flex flex-col">
+            <label htmlFor="admin-language" className={labelCls}>
+              <Globe size={16} className="text-slate-400" /> Preferred Language
             </label>
             <select
               id="admin-language"
-              className="w-full px-3.5 py-2.5 rounded-lg bg-brand-elevated border border-brand-border text-brand-base text-sm outline-none focus:border-green-400 cursor-pointer transition-all"
+              className={`${inputCls} cursor-pointer`}
               value={form.preferred_language}
               onChange={(e) => setForm(f => ({ ...f, preferred_language: e.target.value }))}
             >
@@ -153,35 +158,45 @@ export default function AdminProfile() {
             id="save-profile-btn"
             type="submit"
             disabled={saving}
-            className="self-start flex items-center gap-2 mt-2 px-6 py-2.5 rounded-xl bg-gradient-primary text-white font-semibold text-sm disabled:opacity-50 hover:opacity-90 transition-opacity"
+            className="self-start flex items-center gap-2 mt-4 px-8 py-3.5 rounded-xl bg-emerald-600 border border-transparent text-white font-bold text-base hover:bg-emerald-700 shadow-sm disabled:opacity-50 transition-all"
           >
             {saving ? (
-              <>Saving...</>
+              <>Saving changes...</>
             ) : (
-              <><Save size={15} /> Save Changes</>
+              <><Save size={18} /> Save Changes</>
             )}
           </button>
         </form>
       </div>
 
       {/* Quick Info */}
-      <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-brand-surface border border-brand-subtle rounded-2xl p-5 text-center">
-          <Shield size={24} className="mx-auto mb-2 text-amber-400" />
-          <div className="font-bold text-brand-base text-sm">Role</div>
-          <div className="text-brand-muted text-xs mt-1 uppercase tracking-wider">{profile?.role || 'admin'}</div>
+      <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="bg-brand-surface border border-brand-border rounded-3xl p-6 text-center shadow-sm">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl mb-3">
+             <Shield size={24} className="stroke-2" />
+          </div>
+          <div className="font-bold text-brand-base mb-1">Role Type</div>
+          <div className="text-brand-muted text-xs uppercase font-bold tracking-widest">{profile?.role || 'admin'}</div>
         </div>
-        <div className="bg-brand-surface border border-brand-subtle rounded-2xl p-5 text-center">
-          <Calendar size={24} className="mx-auto mb-2 text-green-400" />
-          <div className="font-bold text-brand-base text-sm">Joined</div>
-          <div className="text-brand-muted text-xs mt-1">
+
+        <div className="bg-brand-surface border border-brand-border rounded-3xl p-6 text-center shadow-sm">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-50 text-blue-600 rounded-xl mb-3">
+             <Calendar size={24} className="stroke-2" />
+          </div>
+          <div className="font-bold text-brand-base mb-1">Date Joined</div>
+          <div className="text-brand-muted text-sm font-medium">
             {profile?.date_joined ? new Date(profile.date_joined).toLocaleDateString('en-IN') : '—'}
           </div>
         </div>
-        <div className="bg-brand-surface border border-brand-subtle rounded-2xl p-5 text-center">
-          <CheckCircle size={24} className="mx-auto mb-2 text-blue-400" />
-          <div className="font-bold text-brand-base text-sm">Status</div>
-          <div className="text-green-400 text-xs mt-1 font-semibold">Active</div>
+
+        <div className="bg-brand-surface border border-brand-border rounded-3xl p-6 text-center shadow-sm">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-green-50 text-green-600 rounded-xl mb-3">
+             <CheckCircle size={24} className="stroke-2" />
+          </div>
+          <div className="font-bold text-brand-base mb-1">Status</div>
+          <div className="text-emerald-500 text-sm font-bold flex items-center justify-center gap-1.5">
+             <div className="w-2 h-2 rounded-full bg-emerald-500" /> Active
+          </div>
         </div>
       </div>
     </div>

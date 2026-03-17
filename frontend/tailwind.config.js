@@ -9,16 +9,32 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
-        display: ['Outfit', 'Inter', 'sans-serif'],
+        display: ['Outfit', 'system-ui', 'sans-serif'],
       },
       colors: {
-        green: {
-          400: 'hsl(142, 71%, 45%)',
-          500: 'hsl(142, 76%, 36%)',
-          600: 'hsl(142, 80%, 28%)',
+        emerald: {
+          50: '#ecfdf5',
+          100: '#d1fae5',
+          200: '#a7f3d0',
+          300: '#6ee7b7',
+          400: '#34d399',
+          500: '#10b981',
+          600: '#059669',
+          700: '#047857',
+          800: '#065f46',
+          900: '#064e3b',
         },
-        teal: {
-          400: 'hsl(173, 80%, 40%)',
+        slate: {
+          50: '#f8fafc',
+          100: '#f1f5f9',
+          200: '#e2e8f0',
+          300: '#cbd5e1',
+          400: '#94a3b8',
+          500: '#64748b',
+          600: '#475569',
+          700: '#334155',
+          800: '#1e293b',
+          900: '#0f172a',
         },
         brand: {
           bg:       'var(--color-brand-bg)',
@@ -33,18 +49,17 @@ export default {
         },
       },
       backgroundImage: {
-        'gradient-primary': 'linear-gradient(135deg, hsl(142,76%,36%), hsl(173,80%,40%))',
-        'gradient-hero':    'var(--bg-gradient-hero)',
-        'gradient-card':    'var(--bg-gradient-card)',
+        'gradient-primary': 'linear-gradient(135deg, theme(colors.emerald.600), theme(colors.emerald.500))',
       },
       boxShadow: {
-        glow:  '0 0 24px hsla(142,76%,36%,0.25)',
-        'glow-lg': '0 0 40px hsla(142,76%,36%,0.35)',
+        glow:  '0 4px 24px theme(colors.emerald.500 / 15%)',
+        'glow-lg': '0 8px 32px theme(colors.emerald.600 / 20%)',
       },
       animation: {
         shimmer: 'shimmer 1.5s infinite',
         pulse: 'pulse 2s cubic-bezier(0.4,0,0.6,1) infinite',
-        fadeDown: 'fadeDown 0.15s ease',
+        fadeDown: 'fadeDown 0.3s ease-out forwards',
+        fadeIn: 'fadeIn 0.3s ease-out forwards',
       },
       keyframes: {
         shimmer: {
@@ -52,9 +67,13 @@ export default {
           '100%': { backgroundPosition: '-200% 0' },
         },
         fadeDown: {
-          from: { opacity: 0, transform: 'translateY(-6px)' },
+          from: { opacity: 0, transform: 'translateY(-10px)' },
           to:   { opacity: 1, transform: 'translateY(0)' },
         },
+        fadeIn: {
+          from: { opacity: 0 },
+          to: { opacity: 1 },
+        }
       },
     },
   },

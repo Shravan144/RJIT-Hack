@@ -26,11 +26,11 @@ export default function DataAnalyticsDashboard() {
 
   if (loading) {
     return (
-      <div className="p-8">
-        <h1 className="font-display font-black text-3xl text-brand-base mb-8">Admin Dashboard</h1>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="p-4 md:p-8 max-w-7xl">
+        <h1 className="font-display font-bold text-3xl text-brand-base mb-8 tracking-tight">Admin Dashboard</h1>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {[...Array(8)].map((_, i) => (
-            <div key={i} className="h-32 rounded-2xl skeleton-shimmer" />
+            <div key={i} className="h-40 rounded-3xl bg-brand-surface border border-brand-subtle shadow-[0_2px_12px_-4px_rgba(0,0,0,0.05)] animate-pulse" />
           ))}
         </div>
       </div>
@@ -38,95 +38,105 @@ export default function DataAnalyticsDashboard() {
   }
 
   const dealerCards = [
-    { label: 'Total Dealers', value: stats?.dealers?.total || 0, icon: <Users size={22} />, color: 'from-blue-500 to-blue-600', bg: 'bg-blue-500/10', text: 'text-blue-400' },
-    { label: 'Approved', value: stats?.dealers?.approved || 0, icon: <ShieldCheck size={22} />, color: 'from-green-500 to-emerald-500', bg: 'bg-green-500/10', text: 'text-green-400' },
-    { label: 'Pending Approval', value: stats?.dealers?.pending_approval || 0, icon: <Clock size={22} />, color: 'from-amber-500 to-orange-500', bg: 'bg-amber-500/10', text: 'text-amber-400' },
-    { label: 'Red Flagged', value: stats?.dealers?.flagged || 0, icon: <Flag size={22} />, color: 'from-red-500 to-rose-600', bg: 'bg-red-500/10', text: 'text-red-400' },
+    { label: 'Total Dealers', value: stats?.dealers?.total || 0, icon: <Users size={22} className="stroke-2" />, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { label: 'Approved', value: stats?.dealers?.approved || 0, icon: <ShieldCheck size={22} className="stroke-2" />, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: 'Pending Approval', value: stats?.dealers?.pending_approval || 0, icon: <Clock size={22} className="stroke-2" />, color: 'text-amber-600', bg: 'bg-amber-50' },
+    { label: 'Red Flagged', value: stats?.dealers?.flagged || 0, icon: <Flag size={22} className="stroke-2" />, color: 'text-red-600', bg: 'bg-red-50' },
   ];
 
   const reportCards = [
-    { label: 'Total Complaints', value: stats?.reports?.total || 0, icon: <AlertTriangle size={22} />, color: 'from-purple-500 to-violet-600', bg: 'bg-purple-500/10', text: 'text-purple-400' },
-    { label: 'Pending Review', value: stats?.reports?.pending || 0, icon: <Clock size={22} />, color: 'from-yellow-500 to-amber-500', bg: 'bg-yellow-500/10', text: 'text-yellow-400' },
-    { label: 'Verified', value: stats?.reports?.verified || 0, icon: <CheckCircle size={22} />, color: 'from-green-500 to-teal-500', bg: 'bg-green-500/10', text: 'text-green-400' },
-    { label: 'Dismissed', value: stats?.reports?.dismissed || 0, icon: <XCircle size={22} />, color: 'from-slate-500 to-gray-600', bg: 'bg-slate-500/10', text: 'text-slate-400' },
+    { label: 'Total Complaints', value: stats?.reports?.total || 0, icon: <AlertTriangle size={22} className="stroke-2" />, color: 'text-purple-600', bg: 'bg-purple-50' },
+    { label: 'Pending Review', value: stats?.reports?.pending || 0, icon: <Clock size={22} className="stroke-2" />, color: 'text-amber-600', bg: 'bg-amber-50' },
+    { label: 'Verified', value: stats?.reports?.verified || 0, icon: <CheckCircle size={22} className="stroke-2" />, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: 'Dismissed', value: stats?.reports?.dismissed || 0, icon: <XCircle size={22} className="stroke-2" />, color: 'text-slate-600', bg: 'bg-slate-100' },
   ];
 
   return (
-    <div className="p-8 max-w-7xl">
+    <div className="p-4 md:p-8 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center text-white shadow-glow">
-            <BarChart3 size={20} />
+      <div className="mb-10">
+        <div className="flex items-center gap-4 mb-2">
+          <div className="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center text-white shadow-md">
+            <BarChart3 size={24} className="stroke-2 text-emerald-400" />
           </div>
-          <h1 className="font-display font-black text-3xl text-brand-base">Admin Dashboard</h1>
+          <div>
+            <h1 className="font-display font-bold text-3xl md:text-4xl text-brand-base tracking-tight">Admin Dashboard</h1>
+            <p className="text-brand-muted font-medium mt-1">Overview of dealer verifications and complaint management</p>
+          </div>
         </div>
-        <p className="text-brand-muted ml-[52px]">Overview of dealer verifications and complaint management</p>
       </div>
 
+      {/* Action Items */}
+      {((stats?.dealers?.pending_approval || 0) > 0 || (stats?.reports?.pending || 0) > 0) && (
+        <div className="bg-amber-50 border border-amber-200 rounded-3xl p-6 md:p-8 mb-10 shadow-sm flex flex-col md:flex-row gap-6 md:items-center">
+          <div className="flex items-center gap-4 shrink-0">
+             <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
+               <AlertTriangle size={24} className="stroke-2" />
+             </div>
+             <div>
+               <h3 className="font-bold text-amber-900 text-lg">Action Required</h3>
+               <p className="text-amber-700 text-sm">You have pending items to review.</p>
+             </div>
+          </div>
+          
+          <div className="flex flex-col gap-3 text-sm flex-1 md:pl-8 md:border-l md:border-amber-200/50">
+            {(stats?.dealers?.pending_approval || 0) > 0 && (
+              <div className="flex items-center gap-3 text-slate-600 bg-brand-surface/60 p-3 rounded-xl">
+                <div className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.5)] shrink-0" />
+                <span><strong className="text-brand-base">{stats.dealers.pending_approval}</strong> dealer(s) awaiting verification — go to <strong className="text-emerald-600">Handle Dealers</strong></span>
+              </div>
+            )}
+            {(stats?.reports?.pending || 0) > 0 && (
+              <div className="flex items-center gap-3 text-slate-600 bg-brand-surface/60 p-3 rounded-xl">
+                <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.5)] shrink-0" />
+                <span><strong className="text-brand-base">{stats.reports.pending}</strong> complaint(s) pending review — go to <strong className="text-emerald-600">Complaints</strong></span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Dealer Stats */}
-      <div className="mb-8">
-        <h2 className="flex items-center gap-2 font-bold text-lg text-brand-base mb-4">
-          <TrendingUp size={18} className="text-green-400" /> Dealer Overview
+      <div className="mb-10">
+        <h2 className="flex items-center gap-2.5 font-bold text-xl text-brand-base mb-6">
+          <TrendingUp size={20} className="text-emerald-500" /> Dealer Overview
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {dealerCards.map((card) => (
             <div key={card.label}
-              className="relative overflow-hidden bg-brand-surface border border-brand-subtle rounded-2xl p-5 hover:-translate-y-0.5 hover:shadow-xl transition-all duration-300 group">
-              {/* Gradient accent */}
-              <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${card.color} opacity-[0.06] rounded-full -translate-y-6 translate-x-6 group-hover:opacity-[0.12] transition-opacity`} />
-              <div className={`inline-flex items-center justify-center w-11 h-11 rounded-xl ${card.bg} ${card.text} mb-3`}>
+              className="bg-brand-surface border border-brand-border rounded-3xl p-6 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all duration-300 flex flex-col items-start gap-4">
+              <div className={`flex items-center justify-center w-12 h-12 rounded-2xl ${card.bg} ${card.color}`}>
                 {card.icon}
               </div>
-              <div className="font-display font-black text-3xl text-brand-base">{card.value}</div>
-              <div className="text-brand-muted text-sm mt-1">{card.label}</div>
+              <div>
+                <div className="font-display font-bold text-4xl text-brand-base tracking-tight">{card.value}</div>
+                <div className="text-brand-muted font-medium text-sm mt-1 uppercase tracking-wider">{card.label}</div>
+              </div>
             </div>
           ))}
         </div>
       </div>
 
       {/* Complaint Stats */}
-      <div className="mb-8">
-        <h2 className="flex items-center gap-2 font-bold text-lg text-brand-base mb-4">
-          <AlertTriangle size={18} className="text-amber-400" /> Complaint Overview
+      <div className="mb-4">
+        <h2 className="flex items-center gap-2.5 font-bold text-xl text-brand-base mb-6">
+          <AlertTriangle size={20} className="text-amber-500" /> Complaint Overview
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {reportCards.map((card) => (
             <div key={card.label}
-              className="relative overflow-hidden bg-brand-surface border border-brand-subtle rounded-2xl p-5 hover:-translate-y-0.5 hover:shadow-xl transition-all duration-300 group">
-              <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${card.color} opacity-[0.06] rounded-full -translate-y-6 translate-x-6 group-hover:opacity-[0.12] transition-opacity`} />
-              <div className={`inline-flex items-center justify-center w-11 h-11 rounded-xl ${card.bg} ${card.text} mb-3`}>
+              className="bg-brand-surface border border-brand-border rounded-3xl p-6 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all duration-300 flex flex-col items-start gap-4">
+              <div className={`flex items-center justify-center w-12 h-12 rounded-2xl ${card.bg} ${card.color}`}>
                 {card.icon}
               </div>
-              <div className="font-display font-black text-3xl text-brand-base">{card.value}</div>
-              <div className="text-brand-muted text-sm mt-1">{card.label}</div>
+              <div>
+                <div className="font-display font-bold text-4xl text-brand-base tracking-tight">{card.value}</div>
+                <div className="text-brand-muted font-medium text-sm mt-1 uppercase tracking-wider">{card.label}</div>
+              </div>
             </div>
           ))}
         </div>
       </div>
-
-      {/* Action Items */}
-      {((stats?.dealers?.pending_approval || 0) > 0 || (stats?.reports?.pending || 0) > 0) && (
-        <div className="bg-amber-400/5 border border-amber-400/20 rounded-2xl p-6">
-          <h3 className="flex items-center gap-2 font-bold text-amber-400 mb-3">
-            <AlertTriangle size={16} /> Action Required
-          </h3>
-          <div className="flex flex-col gap-2 text-sm">
-            {(stats?.dealers?.pending_approval || 0) > 0 && (
-              <div className="flex items-center gap-2 text-brand-muted">
-                <div className="w-2 h-2 rounded-full bg-amber-400 animate-dot-pulse" />
-                <span><strong className="text-brand-base">{stats.dealers.pending_approval}</strong> dealer(s) awaiting verification — go to <strong className="text-green-400">Handle Dealers</strong></span>
-              </div>
-            )}
-            {(stats?.reports?.pending || 0) > 0 && (
-              <div className="flex items-center gap-2 text-brand-muted">
-                <div className="w-2 h-2 rounded-full bg-red-400 animate-dot-pulse" />
-                <span><strong className="text-brand-base">{stats.reports.pending}</strong> complaint(s) pending review — go to <strong className="text-green-400">Complaints</strong></span>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -6,20 +6,22 @@ import {
   Image, User, Calendar, Tag, FileText
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { getApiData, getApiMessage } from '../utils/apiMessage';
+import PaginationControls from '../components/PaginationControls';
 
 const STATUS_TABS = [
-  { key: 'all', label: 'All', icon: <FileText size={15} />, color: 'text-blue-400' },
-  { key: 'pending', label: 'Pending', icon: <Clock size={15} />, color: 'text-amber-400' },
-  { key: 'under_review', label: 'Under Review', icon: <Eye size={15} />, color: 'text-purple-400' },
-  { key: 'verified', label: 'Verified', icon: <CheckCircle size={15} />, color: 'text-green-400' },
-  { key: 'dismissed', label: 'Dismissed', icon: <XCircle size={15} />, color: 'text-slate-400' },
+  { key: 'all', label: 'All', icon: <FileText size={16} />, color: 'text-blue-500', activeCls: 'border-blue-500 text-blue-700 bg-blue-50/50' },
+  { key: 'pending', label: 'Pending', icon: <Clock size={16} />, color: 'text-amber-500', activeCls: 'border-amber-500 text-amber-700 bg-amber-50/50' },
+  { key: 'under_review', label: 'Under Review', icon: <Eye size={16} />, color: 'text-purple-500', activeCls: 'border-purple-500 text-purple-700 bg-purple-50/50' },
+  { key: 'verified', label: 'Verified', icon: <CheckCircle size={16} />, color: 'text-emerald-500', activeCls: 'border-emerald-500 text-emerald-700 bg-emerald-50/50' },
+  { key: 'dismissed', label: 'Dismissed', icon: <XCircle size={16} />, color: 'text-brand-muted', activeCls: 'border-slate-500 text-brand-base bg-brand-bg/50' },
 ];
 
 const STATUS_CONFIG = {
-  pending:      { cls: 'bg-amber-400/10 border-amber-400/25 text-amber-400', label: 'Pending', icon: <Clock size={12} /> },
-  under_review: { cls: 'bg-purple-400/10 border-purple-400/25 text-purple-400', label: 'Under Review', icon: <Eye size={12} /> },
-  verified:     { cls: 'bg-green-400/10 border-green-400/25 text-green-400', label: 'Verified', icon: <CheckCircle size={12} /> },
-  dismissed:    { cls: 'bg-slate-400/10 border-slate-400/25 text-slate-400', label: 'Dismissed', icon: <XCircle size={12} /> },
+  pending:      { cls: 'bg-amber-50 text-amber-700 border-amber-200', label: 'Pending', icon: <Clock size={14} className="stroke-2" /> },
+  under_review: { cls: 'bg-purple-50 text-purple-700 border-purple-200', label: 'Under Review', icon: <Eye size={14} className="stroke-2" /> },
+  verified:     { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', label: 'Verified', icon: <CheckCircle size={14} className="stroke-2" /> },
+  dismissed:    { cls: 'bg-slate-100 text-slate-600 border-brand-border', label: 'Dismissed', icon: <XCircle size={14} className="stroke-2" /> },
 };
 
 const CATEGORY_LABEL = {
@@ -32,34 +34,60 @@ const CATEGORY_LABEL = {
 };
 
 const CATEGORY_COLOR = {
-  fake_product: 'bg-red-400/10 text-red-400 border-red-400/20',
-  overpricing: 'bg-amber-400/10 text-amber-400 border-amber-400/20',
-  unlicensed: 'bg-purple-400/10 text-purple-400 border-purple-400/20',
-  expired_product: 'bg-orange-400/10 text-orange-400 border-orange-400/20',
-  wrong_advice: 'bg-blue-400/10 text-blue-400 border-blue-400/20',
-  other: 'bg-slate-400/10 text-slate-400 border-slate-400/20',
+  fake_product: 'bg-red-50 text-red-600 border-red-200',
+  overpricing: 'bg-amber-50 text-amber-600 border-amber-200',
+  unlicensed: 'bg-purple-50 text-purple-600 border-purple-200',
+  expired_product: 'bg-orange-50 text-orange-600 border-orange-200',
+  wrong_advice: 'bg-blue-50 text-blue-600 border-blue-200',
+  other: 'bg-brand-bg text-slate-600 border-brand-border',
 };
 
 export default function HandleComplaints() {
   const [complaints, setComplaints] = useState([]);
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('all');
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageMeta, setPageMeta] = useState({ count: 0, next: null, previous: null });
   const [expandedId, setExpandedId] = useState(null);
   const [adminNotes, setAdminNotes] = useState({});
   const [actionLoading, setActionLoading] = useState(null);
 
   useEffect(() => {
-    fetchComplaints();
+    fetchStats();
   }, []);
+
+  useEffect(() => {
+    fetchComplaints();
+  }, [tab, search, page]);
+
+  const fetchStats = async () => {
+    try {
+      const { data } = await api.get('/dealers/admin_stats/');
+      setStats(data);
+    } catch (err) {
+      toast.error(getApiMessage(err, 'Failed to load complaint stats'));
+    }
+  };
 
   const fetchComplaints = async () => {
     try {
-      const { data } = await api.get('/reports/');
-      setComplaints(data.results || data);
+      const params = {
+        page,
+        page_size: 12,
+        search: search || undefined,
+      };
+      if (tab !== 'all') {
+        params.status = tab;
+      }
+
+      const { data } = await api.get('/reports/', { params });
+      setComplaints(data.results || []);
+      setPageMeta({ count: data.count || 0, next: data.next, previous: data.previous });
     } catch (err) {
       console.error('Error fetching complaints:', err);
-      toast.error('Failed to load complaints');
+      toast.error(getApiMessage(err, 'Failed to load complaints'));
     } finally {
       setLoading(false);
     }
@@ -73,9 +101,10 @@ export default function HandleComplaints() {
         admin_notes: adminNotes[id] || ''
       });
       toast.success(`Complaint marked as ${status}`);
+      fetchStats();
       fetchComplaints();
     } catch (err) {
-      toast.error('Failed to update complaint status');
+      toast.error(getApiMessage(err, 'Failed to update complaint status'));
     } finally {
       setActionLoading(null);
     }
@@ -84,107 +113,112 @@ export default function HandleComplaints() {
   const handleFlagDealer = async (dealerId) => {
     try {
       const { data } = await api.post(`/dealers/${dealerId}/flag/`);
-      toast.success(data.detail);
+      const payload = getApiData(data) || {};
+      toast.success(data.message || data.detail || 'Dealer flag updated');
+      if (payload.is_flagged === true) {
+        fetchStats();
+      }
     } catch (err) {
-      toast.error('Failed to flag dealer');
+      toast.error(getApiMessage(err, 'Failed to flag dealer'));
     }
   };
 
-  // Filter
-  const filtered = complaints.filter(c => {
-    const matchSearch = !search ||
-      c.dealer_name?.toLowerCase().includes(search.toLowerCase()) ||
-      c.description?.toLowerCase().includes(search.toLowerCase()) ||
-      c.reporter_name?.toLowerCase().includes(search.toLowerCase());
-
-    if (!matchSearch) return false;
-    if (tab === 'all') return true;
-    return c.status === tab;
-  });
-
   const tabCounts = {
-    all: complaints.length,
-    pending: complaints.filter(c => c.status === 'pending').length,
-    under_review: complaints.filter(c => c.status === 'under_review').length,
-    verified: complaints.filter(c => c.status === 'verified').length,
-    dismissed: complaints.filter(c => c.status === 'dismissed').length,
+    all: stats?.reports?.total ?? 0,
+    pending: stats?.reports?.pending ?? 0,
+    under_review: stats?.reports?.under_review ?? 0,
+    verified: stats?.reports?.verified ?? 0,
+    dismissed: stats?.reports?.dismissed ?? 0,
   };
+  const totalPages = Math.max(1, Math.ceil((pageMeta.count || 0) / 12));
 
   if (loading) {
     return (
-      <div className="p-8">
-        <h1 className="font-display font-black text-3xl text-brand-base mb-6">Manage Complaints</h1>
+      <div className="p-4 md:p-8 max-w-7xl mx-auto">
+        <h1 className="font-display font-bold text-3xl text-brand-base mb-6 tracking-tight">Manage Complaints</h1>
         <div className="flex flex-col gap-4">
-          {[...Array(5)].map((_, i) => <div key={i} className="h-28 rounded-2xl skeleton-shimmer" />)}
+          {[...Array(5)].map((_, i) => <div key={i} className="h-28 bg-brand-surface border border-brand-subtle rounded-3xl animate-pulse shadow-sm" />)}
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-8 max-w-7xl">
+    <div className="p-4 md:p-8 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
         <div>
-          <div className="flex items-center gap-3 mb-1">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center text-white shadow-lg">
-              <AlertTriangle size={20} />
+          <div className="flex items-center gap-4 mb-2">
+            <div className="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center text-white shadow-md">
+              <AlertTriangle size={24} className="stroke-2 text-rose-400" />
             </div>
-            <h1 className="font-display font-black text-3xl text-brand-base">Manage Complaints</h1>
+            <h1 className="font-display font-bold text-3xl md:text-4xl text-brand-base tracking-tight">Manage Complaints</h1>
           </div>
-          <p className="text-brand-muted ml-[52px]">Review, verify, and act on farmer complaints against dealers</p>
+          <p className="text-brand-muted font-medium md:ml-[64px]">Review, verify, and act on farmer complaints against dealers</p>
         </div>
       </div>
 
-      {/* Search */}
-      <div className="flex items-center gap-3 mb-5">
-        <div className="flex-1 flex items-center bg-brand-elevated border border-brand-border rounded-xl focus-within:border-green-400 transition-all">
-          <Search className="mx-3 text-brand-muted" size={17} />
-          <input
-            id="complaint-search"
-            type="text"
-            placeholder="Search by dealer name, reporter, or description..."
-            className="flex-1 bg-transparent border-none outline-none text-brand-base text-sm py-3 pr-4 placeholder-brand-muted"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+      <div className="bg-brand-surface border border-brand-border rounded-3xl shadow-sm overflow-hidden mb-6 flex flex-col md:flex-row md:items-center justify-between p-2">
+         {/* Tabs */}
+         <div className="flex gap-1 overflow-x-auto p-2 no-scrollbar">
+          {STATUS_TABS.map((t) => (
+            <button
+              key={t.key}
+              id={`complaint-tab-${t.key}`}
+              onClick={() => {
+                setTab(t.key);
+                setPage(1);
+              }}
+              className={`flex items-center gap-2.5 px-5 py-3 text-sm font-bold rounded-xl whitespace-nowrap transition-all border-b-2
+                ${tab === t.key
+                  ? t.activeCls
+                  : 'text-brand-muted border-transparent hover:text-brand-base hover:bg-brand-bg'
+                }`}
+            >
+              <span className={t.color}>{t.icon}</span>
+              {t.label}
+              <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-bold ${
+                tab === t.key ? 'bg-brand-surface text-brand-base shadow-sm' : 'bg-slate-100 text-brand-muted'
+              }`}>
+                {tabCounts[t.key]}
+              </span>
+            </button>
+          ))}
         </div>
-      </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 mb-6 overflow-x-auto pb-1 border-b border-brand-subtle">
-        {STATUS_TABS.map((t) => (
-          <button
-            key={t.key}
-            id={`complaint-tab-${t.key}`}
-            onClick={() => setTab(t.key)}
-            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px whitespace-nowrap transition-all
-              ${tab === t.key
-                ? `${t.color} border-current`
-                : 'text-brand-muted border-transparent hover:text-brand-base'
-              }`}
-          >
-            {t.icon}
-            {t.label}
-            <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-              tab === t.key ? 'bg-brand-elevated' : 'bg-brand-subtle text-brand-muted'
-            }`}>
-              {tabCounts[t.key]}
-            </span>
-          </button>
-        ))}
+        {/* Search */}
+        <div className="p-2 w-full md:w-96">
+          <div className="flex items-center gap-3 bg-brand-bg border border-brand-border rounded-xl focus-within:border-emerald-500 focus-within:bg-brand-surface focus-within:ring-2 focus-within:ring-emerald-500/20 transition-all px-4 py-2.5">
+            <Search className="text-slate-400 shrink-0" size={18} />
+            <input
+              id="complaint-search"
+              type="text"
+              placeholder="Search by dealer or description..."
+              className="flex-1 bg-transparent border-none outline-none text-brand-base font-medium text-sm placeholder-slate-400"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+            />
+          </div>
+        </div>
       </div>
 
       {/* Empty State */}
-      {filtered.length === 0 ? (
-        <div className="flex flex-col items-center gap-4 py-20 text-brand-muted">
-          <MessageSquare size={48} className="opacity-30" />
-          <p className="text-lg font-medium">No complaints found</p>
-          <p className="text-sm">{tab === 'pending' ? 'All complaints have been reviewed!' : 'Try adjusting your filters'}</p>
+      {complaints.length === 0 ? (
+        <div className="flex flex-col items-center justify-center bg-brand-surface border border-brand-border rounded-3xl shadow-sm p-20 text-center">
+          <div className="w-20 h-20 bg-brand-bg rounded-full flex items-center justify-center text-slate-300 mb-6">
+             <MessageSquare size={40} />
+          </div>
+          <h3 className="font-bold text-brand-base text-xl mb-2">No complaints found</h3>
+          <p className="text-brand-muted font-medium max-w-sm">
+            {tab === 'pending' ? 'Excellent! All complaints have been reviewed and processed.' : 'No complaints match your current filters.'}
+          </p>
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
-          {filtered.map((complaint) => {
+        <div className="flex flex-col gap-4">
+          {complaints.map((complaint) => {
             const sc = STATUS_CONFIG[complaint.status] || STATUS_CONFIG.pending;
             const isExpanded = expandedId === complaint.id;
             const isLoading = actionLoading === complaint.id;
@@ -193,121 +227,138 @@ export default function HandleComplaints() {
 
             return (
               <div key={complaint.id}
-                className={`bg-brand-surface border rounded-2xl overflow-hidden transition-all duration-300 ${
+                className={`bg-brand-surface border rounded-3xl overflow-hidden transition-all duration-300 shadow-sm ${
                   complaint.status === 'pending'
-                    ? 'border-amber-400/20'
+                    ? 'border-amber-200'
                     : complaint.status === 'verified'
-                    ? 'border-green-400/20'
-                    : 'border-brand-subtle'
+                    ? 'border-emerald-200'
+                    : 'border-brand-border hover:border-emerald-300'
                 }`}
               >
                 {/* Summary Row */}
                 <div
-                  className="flex flex-wrap items-center gap-4 p-5 cursor-pointer"
+                  className="flex flex-wrap items-center gap-4 p-5 cursor-pointer hover:bg-brand-bg/50 transition-colors"
                   onClick={() => setExpandedId(isExpanded ? null : complaint.id)}
                 >
                   {/* Severity Icon */}
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                    complaint.status === 'pending' ? 'bg-amber-400/10 text-amber-400'
-                    : complaint.status === 'verified' ? 'bg-green-400/10 text-green-400'
-                    : complaint.status === 'under_review' ? 'bg-purple-400/10 text-purple-400'
-                    : 'bg-brand-elevated text-brand-muted'
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-sm ${
+                    complaint.status === 'pending' ? 'bg-amber-100 text-amber-600'
+                    : complaint.status === 'verified' ? 'bg-emerald-100 text-emerald-600'
+                    : complaint.status === 'under_review' ? 'bg-purple-100 text-purple-600'
+                    : 'bg-slate-100 text-brand-muted'
                   }`}>
-                    <AlertTriangle size={18} />
+                    <AlertTriangle size={24} className="stroke-2" />
                   </div>
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                      <h3 className="font-bold text-brand-base text-sm">Complaint #{complaint.id}</h3>
-                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] font-bold ${catColor}`}>
-                        <Tag size={9} /> {catLabel}
+                    <div className="flex items-center gap-3 flex-wrap mb-1.5">
+                      <h3 className="font-bold text-brand-base text-lg">Complaint #{complaint.id}</h3>
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] font-bold uppercase tracking-widest ${catColor}`}>
+                        <Tag size={12} className="stroke-2" /> {catLabel}
                       </span>
                     </div>
-                    <p className="text-brand-muted text-sm truncate">
-                      Against <strong className="text-brand-base">{complaint.dealer_name}</strong>
-                      {complaint.reporter_name && <> • by {complaint.reporter_name}</>}
+                    <p className="text-brand-muted font-medium text-sm truncate flex gap-2">
+                      <span>Against <strong className="text-brand-base">{complaint.dealer_name}</strong></span>
+                      {complaint.reporter_name && (
+                         <>
+                           <span className="text-slate-300">•</span>
+                           <span>by {complaint.reporter_name}</span>
+                         </>
+                      )}
                     </p>
                   </div>
 
                   {/* Status & Date */}
-                  <div className="flex items-center gap-3 shrink-0">
-                    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border text-xs font-semibold ${sc.cls}`}>
+                  <div className="flex items-center gap-4 shrink-0">
+                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold uppercase tracking-widest ${sc.cls}`}>
                       {sc.icon} {sc.label}
                     </span>
-                    <span className="hidden sm:flex items-center gap-1 text-brand-muted text-xs">
-                      <Calendar size={12} />
+                    <span className="hidden sm:flex items-center gap-2 text-brand-muted font-bold text-xs uppercase tracking-widest">
+                      <Calendar size={14} className="stroke-2" />
                       {new Date(complaint.created_at).toLocaleDateString('en-IN')}
                     </span>
-                    <div className="text-brand-muted">
-                      {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${isExpanded ? 'bg-slate-100 text-brand-base' : 'text-slate-400'}`}>
+                      {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                     </div>
                   </div>
                 </div>
 
                 {/* Expanded Detail */}
                 {isExpanded && (
-                  <div className="border-t border-brand-subtle bg-brand-elevated/50 p-5 animate-fade-down">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="border-t border-brand-subtle bg-brand-bg/50 p-6 md:p-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                       {/* Left: Details */}
-                      <div className="flex flex-col gap-4">
+                      <div className="flex flex-col gap-5 md:pr-8 md:border-r md:border-brand-border">
                         <div>
-                          <h4 className="font-semibold text-brand-base text-sm uppercase tracking-wider mb-2">Description</h4>
-                          <p className="text-brand-muted text-sm leading-relaxed bg-brand-surface border border-brand-subtle rounded-xl p-4">
-                            {complaint.description}
-                          </p>
+                          <h4 className="font-bold text-brand-base text-sm uppercase tracking-widest flex items-center gap-2 mb-3">
+                             <FileText size={16} className="text-slate-400" /> Description
+                          </h4>
+                          <div className="bg-brand-surface border border-brand-border rounded-2xl p-5 shadow-sm">
+                             <p className="text-brand-base font-medium text-sm leading-relaxed whitespace-pre-wrap">
+                               {complaint.description}
+                             </p>
+                          </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3 text-sm">
-                          <div className="flex items-center gap-2 text-brand-muted">
-                            <User size={14} className="shrink-0" />
+                        <div className="grid grid-cols-2 gap-4 text-sm font-medium">
+                          <div className="flex items-center gap-2.5 text-brand-muted bg-brand-surface p-3 rounded-xl border border-brand-border shadow-sm">
+                            <User size={16} className="shrink-0 text-slate-400" />
                             <span>Reporter: <strong className="text-brand-base">{complaint.reporter_name || 'Anonymous'}</strong></span>
                           </div>
-                          <div className="flex items-center gap-2 text-brand-muted">
-                            <Calendar size={14} className="shrink-0" />
+                          <div className="flex items-center gap-2.5 text-brand-muted bg-brand-surface p-3 rounded-xl border border-brand-border shadow-sm">
+                            <Calendar size={16} className="shrink-0 text-slate-400" />
                             <span>{new Date(complaint.created_at).toLocaleString('en-IN')}</span>
                           </div>
                           {complaint.product_name && (
-                            <div className="flex items-center gap-2 text-brand-muted col-span-2">
-                              <Tag size={14} className="shrink-0" />
-                              <span>Product: <strong className="text-brand-base">{complaint.product_name}</strong></span>
+                            <div className="flex items-center gap-2.5 text-brand-muted col-span-2 bg-brand-surface p-3 rounded-xl border border-brand-border shadow-sm">
+                              <Tag size={16} className="shrink-0 text-slate-400" />
+                              <span>Product Details: <strong className="text-brand-base">{complaint.product_name}</strong></span>
                             </div>
                           )}
                         </div>
 
                         {complaint.evidence_image && (
                           <div>
-                            <h4 className="font-semibold text-brand-base text-sm uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                              <Image size={14} /> Evidence
+                            <h4 className="font-bold text-brand-base text-sm uppercase tracking-widest flex items-center gap-2 mb-3">
+                              <Image size={16} className="text-slate-400" /> Supporting Evidence
                             </h4>
-                            <img
-                              src={complaint.evidence_image}
-                              alt="Evidence"
-                              className="max-w-full max-h-64 rounded-xl border border-brand-subtle object-cover"
-                            />
+                            <div className="bg-brand-surface p-2 rounded-2xl border border-brand-border shadow-sm inline-block">
+                               <img
+                                 src={complaint.evidence_image}
+                                 alt="Evidence"
+                                 className="max-w-full max-h-64 rounded-xl object-contain bg-slate-100"
+                               />
+                            </div>
                           </div>
                         )}
 
                         {complaint.admin_notes && (
-                          <div className="bg-brand-surface border border-brand-subtle rounded-xl p-3">
-                            <h4 className="text-xs font-semibold text-brand-muted uppercase tracking-wider mb-1">Admin Notes</h4>
-                            <p className="text-sm text-brand-base">{complaint.admin_notes}</p>
+                          <div className="bg-slate-100 border border-brand-border rounded-2xl p-4">
+                            <h4 className="text-[10px] font-bold text-brand-muted uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                               <MessageSquare size={12} /> Previous Admin Notes
+                            </h4>
+                            <p className="text-sm font-medium text-slate-800">{complaint.admin_notes}</p>
                           </div>
                         )}
                       </div>
 
                       {/* Right: Actions */}
-                      <div className="flex flex-col gap-4">
-                        <h4 className="font-semibold text-brand-base text-sm uppercase tracking-wider">Admin Actions</h4>
+                      <div className="flex flex-col gap-6">
+                        <h4 className="font-bold text-brand-base text-sm uppercase tracking-widest flex items-center gap-2">
+                           <CheckCircle size={16} className="text-slate-400" /> Resolution Workflow
+                        </h4>
 
-                        {/* Admin Notes */}
-                        <div>
-                          <label className="text-xs font-medium text-brand-muted mb-1.5 block">Add Notes (optional)</label>
+                        {/* Admin Notes Box */}
+                        <div className="bg-brand-surface border border-brand-border rounded-2xl p-5 shadow-sm">
+                          <label className="text-xs font-bold text-brand-muted uppercase tracking-widest mb-2 flex items-center gap-2">
+                             <MessageSquare size={14} /> Add Internal Notes
+                          </label>
                           <textarea
                             id={`notes-${complaint.id}`}
                             rows={3}
-                            placeholder="Add internal notes about this complaint..."
-                            className="w-full px-3.5 py-2.5 rounded-lg bg-brand-surface border border-brand-border text-brand-base text-sm outline-none focus:border-green-400 placeholder-brand-muted resize-y transition-all"
+                            placeholder="Add your investigation findings or internal notes here. These won't be visible to the farmer..."
+                            className="w-full px-4 py-3 rounded-xl bg-brand-bg border border-brand-border text-brand-base text-sm font-medium outline-none focus:border-emerald-500 focus:bg-brand-surface resize-y transition-all placeholder-slate-400"
                             value={adminNotes[complaint.id] || ''}
                             onChange={(e) => setAdminNotes(prev => ({ ...prev, [complaint.id]: e.target.value }))}
                           />
@@ -315,83 +366,84 @@ export default function HandleComplaints() {
 
                         {/* Status Actions */}
                         {complaint.status === 'pending' && (
-                          <div className="flex flex-col gap-2">
+                          <div className="flex flex-col gap-3">
                             <button
                               id={`review-${complaint.id}`}
                               disabled={isLoading}
                               onClick={() => updateStatus(complaint.id, 'under_review')}
-                              className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 text-purple-400 text-sm font-semibold disabled:opacity-50 transition-all"
+                              className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold border border-purple-200 disabled:opacity-50 transition-all shadow-sm"
                             >
-                              <Eye size={16} /> Start Review
+                              <Eye size={18} className="stroke-2" /> Start Investigation
                             </button>
-                            <div className="flex gap-2">
+                            <div className="flex flex-col sm:flex-row gap-3">
                               <button
                                 id={`verify-${complaint.id}`}
                                 disabled={isLoading}
                                 onClick={() => updateStatus(complaint.id, 'verified')}
-                                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-green-500/10 hover:bg-green-500/20 border border-green-500/20 text-green-400 text-sm font-semibold disabled:opacity-50 transition-all"
+                                className="flex-1 flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 border border-transparent text-white font-bold disabled:opacity-50 transition-all shadow-sm"
                               >
-                                <CheckCircle size={16} /> Verify
+                                <CheckCircle size={18} className="stroke-2" /> Mark Verified
                               </button>
                               <button
                                 id={`dismiss-${complaint.id}`}
                                 disabled={isLoading}
                                 onClick={() => updateStatus(complaint.id, 'dismissed')}
-                                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-slate-500/10 hover:bg-slate-500/20 border border-slate-500/20 text-slate-400 text-sm font-semibold disabled:opacity-50 transition-all"
+                                className="flex-1 flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl bg-brand-surface border-2 border-brand-border hover:border-slate-300 hover:bg-brand-bg text-slate-600 font-bold disabled:opacity-50 transition-all shadow-sm"
                               >
-                                <XCircle size={16} /> Dismiss
+                                <XCircle size={18} className="stroke-2" /> Dismiss Case
                               </button>
                             </div>
                           </div>
                         )}
 
                         {complaint.status === 'under_review' && (
-                          <div className="flex gap-2">
+                          <div className="flex flex-col sm:flex-row gap-3">
                             <button
                               id={`verify-${complaint.id}`}
                               disabled={isLoading}
                               onClick={() => updateStatus(complaint.id, 'verified')}
-                              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-green-500/10 hover:bg-green-500/20 border border-green-500/20 text-green-400 text-sm font-semibold disabled:opacity-50 transition-all"
+                              className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 border border-transparent text-white font-bold disabled:opacity-50 transition-all shadow-sm"
                             >
-                              <CheckCircle size={16} /> Verify Complaint
+                              <CheckCircle size={18} className="stroke-2" /> Conclude & Verify
                             </button>
                             <button
                               id={`dismiss-${complaint.id}`}
                               disabled={isLoading}
                               onClick={() => updateStatus(complaint.id, 'dismissed')}
-                              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-slate-500/10 hover:bg-slate-500/20 border border-slate-500/20 text-slate-400 text-sm font-semibold disabled:opacity-50 transition-all"
+                              className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-brand-surface border-2 border-brand-border hover:border-slate-300 hover:bg-brand-bg text-slate-600 font-bold disabled:opacity-50 transition-all shadow-sm"
                             >
-                              <XCircle size={16} /> Dismiss
+                              <XCircle size={18} className="stroke-2" /> Dismiss Case
                             </button>
                           </div>
                         )}
 
                         {complaint.status === 'verified' && (
-                          <div className="flex items-start gap-2 px-3 py-3 rounded-xl bg-green-400/5 border border-green-400/15 text-green-400 text-sm">
-                            <CheckCircle size={16} className="shrink-0 mt-0.5" />
-                            <span>This complaint has been verified. The dealer's trust score has been adjusted.</span>
+                          <div className="flex items-start gap-3 px-4 py-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-medium">
+                            <CheckCircle size={18} className="shrink-0 mt-0.5 text-emerald-600 stroke-2" />
+                            <span>This complaint has been verified. The dealer's trust score has been dynamically penalized.</span>
                           </div>
                         )}
 
                         {complaint.status === 'dismissed' && (
-                          <div className="flex items-start gap-2 px-3 py-3 rounded-xl bg-slate-400/5 border border-slate-400/15 text-slate-400 text-sm">
-                            <XCircle size={16} className="shrink-0 mt-0.5" />
-                            <span>This complaint has been dismissed.</span>
+                          <div className="flex items-start gap-3 px-4 py-3.5 rounded-xl bg-brand-bg border border-brand-border text-slate-600 text-sm font-medium">
+                            <XCircle size={18} className="shrink-0 mt-0.5 text-slate-400 stroke-2" />
+                            <span>This complaint lack evidence and has been dismissed.</span>
                           </div>
                         )}
 
                         {/* Flag Dealer Action */}
-                        <div className="border-t border-brand-subtle pt-3 mt-1">
+                        <div className="bg-red-50 border border-red-200 rounded-2xl p-4 mt-2">
+                          <span className="text-xs font-bold text-red-800 uppercase tracking-widest mb-3 block">Escalation Controls</span>
                           <button
                             id={`flag-dealer-${complaint.id}`}
                             onClick={() => handleFlagDealer(complaint.dealer)}
-                            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 text-sm font-semibold transition-all"
+                            className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold transition-all shadow-sm border border-transparent"
                           >
-                            <Flag size={16} />
-                            Red Flag This Dealer
+                            <Flag size={18} className="stroke-2" />
+                            Red Flag Dealer Account
                           </button>
-                          <p className="text-brand-muted text-[11px] mt-2 text-center">
-                            Flagging hides the dealer from all farmers immediately
+                          <p className="text-red-700 font-medium text-[11px] mt-3 text-center leading-relaxed">
+                            Immediate action: Suspends the dealer's profile and hides them from all farmers. 
                           </p>
                         </div>
                       </div>
@@ -401,6 +453,19 @@ export default function HandleComplaints() {
               </div>
             );
           })}
+
+          <div className="mt-8 mb-4">
+             <PaginationControls
+               page={page}
+               totalPages={totalPages}
+               count={pageMeta.count}
+               itemLabel="complaints"
+               hasPrevious={!!pageMeta.previous}
+               hasNext={!!pageMeta.next}
+               onPrevious={() => setPage(p => Math.max(1, p - 1))}
+               onNext={() => setPage(p => p + 1)}
+             />
+          </div>
         </div>
       )}
     </div>

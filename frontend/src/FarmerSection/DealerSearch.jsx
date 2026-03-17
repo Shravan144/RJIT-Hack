@@ -5,11 +5,15 @@ import {
   ChevronDown, ChevronUp, Eye, Loader2, Plus, Minus, X, CheckCircle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { getApiMessage } from '../utils/apiMessage';
+import PaginationControls from '../components/PaginationControls';
 
 export default function FarmerDealerSearch() {
   const [dealers, setDealers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageMeta, setPageMeta] = useState({ count: 0, next: null, previous: null });
   const [expandedId, setExpandedId] = useState(null);
   const [dealerProducts, setDealerProducts] = useState({});
   const [productsLoading, setProductsLoading] = useState(null);
@@ -19,12 +23,19 @@ export default function FarmerDealerSearch() {
   const [orderModal, setOrderModal] = useState(null);
   const [orderLoading, setOrderLoading] = useState(false);
 
-  useEffect(() => { fetchDealers(); }, []);
+  useEffect(() => { fetchDealers(page, search); }, [page, search]);
 
-  const fetchDealers = async () => {
+  const fetchDealers = async (targetPage, query) => {
     try {
-      const { data } = await api.get('/dealers/', { params: { page_size: 200 } });
-      setDealers(data.results || data);
+      const { data } = await api.get('/dealers/', {
+        params: {
+          page: targetPage,
+          page_size: 12,
+          search: query || undefined,
+        },
+      });
+      setDealers(data.results || []);
+      setPageMeta({ count: data.count || 0, next: data.next, previous: data.previous });
     } catch (err) {
       toast.error('Failed to load dealers');
     } finally {
@@ -100,17 +111,13 @@ export default function FarmerDealerSearch() {
       });
       setOrderModal(null);
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'Failed to place order');
+      toast.error(getApiMessage(err, 'Failed to place order'));
     } finally {
       setOrderLoading(false);
     }
   };
 
-  const filtered = dealers.filter(d =>
-    !search || d.shop_name?.toLowerCase().includes(search.toLowerCase()) ||
-    d.name?.toLowerCase().includes(search.toLowerCase()) ||
-    d.address?.toLowerCase().includes(search.toLowerCase())
-  );
+  const totalPages = Math.max(1, Math.ceil((pageMeta.count || 0) / 12));
 
   if (loading) {
     return (
@@ -141,12 +148,16 @@ export default function FarmerDealerSearch() {
         <Search className="mx-3 text-brand-muted" size={17} />
         <input type="text" placeholder="Search by dealer name, shop or location..."
           className="flex-1 bg-transparent border-none outline-none text-brand-base text-sm py-3 pr-4 placeholder-brand-muted"
-          value={search} onChange={e => setSearch(e.target.value)}
+          value={search}
+          onChange={e => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
         />
       </div>
 
       {/* Results */}
-      {filtered.length === 0 ? (
+      {dealers.length === 0 ? (
         <div className="flex flex-col items-center gap-4 py-20 text-brand-muted">
           <Search size={48} className="opacity-30" />
           <p className="text-lg font-medium">No verified dealers found</p>
@@ -154,7 +165,7 @@ export default function FarmerDealerSearch() {
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          {filtered.map(dealer => {
+          {dealers.map(dealer => {
             const isExpanded = expandedId === dealer.id;
             const products = dealerProducts[dealer.id] || [];
             const cartItems = getCartForDealer(dealer.id);
@@ -292,6 +303,17 @@ export default function FarmerDealerSearch() {
               </div>
             );
           })}
+
+          <PaginationControls
+            page={page}
+            totalPages={totalPages}
+            count={pageMeta.count}
+            itemLabel="dealers"
+            hasPrevious={!!pageMeta.previous}
+            hasNext={!!pageMeta.next}
+            onPrevious={() => setPage(p => Math.max(1, p - 1))}
+            onNext={() => setPage(p => p + 1)}
+          />
         </div>
       )}
 
