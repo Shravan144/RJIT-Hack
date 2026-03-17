@@ -22,10 +22,7 @@ export default function Navbar({ onLoginClick }) {
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);
   };
-<<<<<<< HEAD
-=======
 
->>>>>>> ba413a2f13f05691a83bc08c0c170ec1730b6eb6
   const navLinks = [
     { label: t('nav.dealers'), to: '/dealers' },
     { label: t('nav.products'), to: '/products' },
@@ -33,7 +30,7 @@ export default function Navbar({ onLoginClick }) {
   ];
 
   return (
-    <nav className="sticky top-0 z-50 bg-brand-bg/85 backdrop-blur-lg border-b border-brand-subtle">
+    <nav className="sticky top-0 z-[9999] bg-brand-bg/85 backdrop-blur-lg border-b border-brand-subtle">
       <div className="max-w-7xl mx-auto flex items-center justify-between px-6 h-16">
 
         {/* Brand */}
@@ -76,7 +73,7 @@ export default function Navbar({ onLoginClick }) {
               </button>
 
               {dropdownOpen && (
-                <div className="absolute right-0 top-[calc(100%+8px)] bg-brand-elevated border border-brand-border rounded-xl p-2 min-w-40 shadow-2xl animate-fade-down">
+                <div className="absolute right-0 top-[calc(100%+8px)] z-[9999] bg-brand-elevated border border-brand-border rounded-xl p-2 min-w-40 shadow-2xl animate-fade-down">
                   <div className="px-2 py-1 text-[11px] uppercase tracking-widest text-brand-muted border-b border-brand-subtle mb-1">
                     {user.role}
                   </div>
@@ -88,11 +85,7 @@ export default function Navbar({ onLoginClick }) {
                     <User size={13} /> Dashboard
                   </Link>
                   <button id="logout-btn"
-<<<<<<< HEAD
-                    className="flex items-center gap-2 w-full px-2.5 py-2 rounded-lg text-sm text-red-400 hover:text-red-300 hover:bg-[hsl(220,12%,18%)] transition-all"
-=======
                     className="flex items-center gap-2 w-full px-2.5 py-2 rounded-lg text-sm text-brand-muted hover:text-brand-base hover:bg-brand-card transition-all"
->>>>>>> ba413a2f13f05691a83bc08c0c170ec1730b6eb6
                     onClick={handleLogout}>
                     <LogOut size={13} /> {t('nav.logout')}
                   </button>

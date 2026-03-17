@@ -3,10 +3,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-<<<<<<< HEAD
 
-=======
->>>>>>> ba413a2f13f05691a83bc08c0c170ec1730b6eb6
 @layer base {
   :root {
     --color-brand-bg: hsl(0, 0%, 99%);
