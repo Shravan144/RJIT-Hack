@@ -32,7 +32,7 @@ export default function BarcodeScanner({ onDetect, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-6">
+    <div className="fixed inset-0 z-[10000] bg-black/80 backdrop-blur-sm flex items-center justify-center p-6">
       <div className="bg-brand-surface border border-brand-border rounded-2xl p-6 w-full max-w-sm flex flex-col gap-4">
 
         <div className="flex justify-between items-center">

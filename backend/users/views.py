@@ -6,7 +6,6 @@ from rest_framework import serializers
 
 User = get_user_model()
 
-
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=6)
 
@@ -15,14 +14,38 @@ class RegisterSerializer(serializers.ModelSerializer):
         fields = ['username', 'email', 'password', 'role', 'phone', 'preferred_language']
 
     def create(self, validated_data):
+        role = validated_data.get('role', 'farmer')
+        if role == 'inspector':
+            role = 'admin'
+            
         user = User.objects.create_user(
             username=validated_data['username'],
             email=validated_data.get('email', ''),
             password=validated_data['password'],
-            role=validated_data.get('role', 'farmer'),
+            role=role,
             phone=validated_data.get('phone', ''),
             preferred_language=validated_data.get('preferred_language', 'en'),
         )
+        
+        if role == 'admin':
+            user.is_staff = True
+            user.is_superuser = True
+            user.save(update_fields=['is_staff', 'is_superuser'])
+            
+        if role == 'dealer':
+            from core.models import Dealer
+            import uuid
+            Dealer.objects.create(
+                user=user,
+                name=user.username,
+                shop_name=user.username + " Shop",
+                license_number="PENDING_" + str(uuid.uuid4())[:8],
+                phone=user.phone or "N/A",
+                address="Address pending",
+                is_approved=False,
+                license_status="pending"
+            )
+            
         return user
 
 

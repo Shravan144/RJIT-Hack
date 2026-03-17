@@ -5,7 +5,10 @@ import {
   Package, 
   AlertTriangle, 
   Search, 
-  CheckSquare 
+  CheckSquare,
+  ShoppingCart,
+  ShieldCheck,
+  Flag
 } from 'lucide-react';
 
 export const sidebarConfig = {
@@ -16,14 +19,24 @@ export const sidebarConfig = {
       icon: <UserCircle size={20} />
     },
     {
-      label: 'Data Analytics Dashboard',
+      label: 'Dashboard',
       path: '/admin/analytics',
       icon: <BarChart size={20} />
     },
     {
-      label: 'Handle Dealers',
+      label: 'Dealer Verification',
       path: '/admin/dealers',
-      icon: <Users size={20} />
+      icon: <ShieldCheck size={20} />
+    },
+    {
+      label: 'Complaints',
+      path: '/admin/complaints',
+      icon: <AlertTriangle size={20} />
+    },
+    {
+      label: 'Orders',
+      path: '/admin/orders',
+      icon: <ShoppingCart size={20} />
     }
   ],
   dealer: [
@@ -33,17 +46,17 @@ export const sidebarConfig = {
       icon: <UserCircle size={20} />
     },
     {
-      label: 'Analytics Dashboard',
-      path: '/dealer/dashboard',
-      icon: <BarChart size={20} />
-    },
-    {
       label: 'Products',
       path: '/dealer/products',
       icon: <Package size={20} />
     },
     {
-      label: 'Complaint Management',
+      label: 'Orders',
+      path: '/dealer/orders',
+      icon: <ShoppingCart size={20} />
+    },
+    {
+      label: 'Complaints',
       path: '/dealer/complaints',
       icon: <AlertTriangle size={20} />
     }
@@ -60,9 +73,9 @@ export const sidebarConfig = {
       icon: <Search size={20} />
     },
     {
-      label: 'Product Verification',
-      path: '/farmer/verify',
-      icon: <CheckSquare size={20} />
+      label: 'My Orders',
+      path: '/farmer/orders',
+      icon: <ShoppingCart size={20} />
     },
     {
       label: 'Complaint & Fraud',

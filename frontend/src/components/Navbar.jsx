@@ -14,7 +14,7 @@ export default function Navbar({ onLoginClick }) {
 
   const handleLogout = () => {
     logout();
-    toast.success('Logged out successfully');
+    toast.success('Logged out successfully', { duration: 2000, position: 'top-right' });
     navigate('/');
     setDropdownOpen(false);
   };
@@ -34,7 +34,7 @@ export default function Navbar({ onLoginClick }) {
       <div className="max-w-7xl mx-auto flex items-center justify-between px-6 h-16">
 
         {/* Brand */}
-        <Link to="/" id="nav-brand" className="flex items-center gap-2.5">
+        <Link to={user ? `/${user.role}` : "/"} id="nav-brand" className="flex items-center gap-2.5">
           <div className="w-9 h-9 rounded-xl bg-gradient-primary flex items-center justify-center text-white shadow-glow">
             <Leaf size={18}/>
           </div>
@@ -79,7 +79,7 @@ export default function Navbar({ onLoginClick }) {
                   </div>
                   <Link 
                     to={`/${user.role}`}
-                    className="flex items-center gap-2 w-full px-2.5 py-2 rounded-lg text-sm text-slate-400 hover:text-slate-100 hover:bg-[hsl(220,12%,18%)] transition-all mb-1"
+                    className="flex items-center gap-2 w-full px-2.5 py-2 rounded-lg text-sm text-brand-muted hover:text-brand-base hover:bg-brand-card transition-all mb-1"
                     onClick={() => setDropdownOpen(false)}
                   >
                     <User size={13} /> Dashboard
@@ -100,7 +100,7 @@ export default function Navbar({ onLoginClick }) {
             </button>
           )}
 
-          <button className="md:hidden text-brand-muted p-1.5 rounded-lg hover:bg-brand-elevated transition-all"
+          <button className="lg:hidden text-brand-muted p-1.5 rounded-lg hover:bg-brand-elevated transition-all"
             id="mobile-menu-btn" onClick={() => setMobileOpen(o => !o)}>
             {mobileOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
@@ -109,7 +109,7 @@ export default function Navbar({ onLoginClick }) {
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="md:hidden bg-brand-surface border-t border-brand-subtle px-4 pb-4 pt-2 flex flex-col gap-1">
+        <div className="lg:hidden bg-brand-surface border-t border-brand-subtle px-4 pb-4 pt-2 flex flex-col gap-1">
           {navLinks.map((l) => (
             <Link key={l.to} to={l.to}
               className="px-3 py-2.5 rounded-lg text-sm text-brand-muted hover:text-brand-base hover:bg-brand-elevated transition-all"

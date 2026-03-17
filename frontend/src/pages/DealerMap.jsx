@@ -26,7 +26,7 @@ export default function DealerMap() {
       <MapContainer
         center={position}
         zoom={13}
-        style={{ height: "100%", width: "100%", zIndex: 10 }}
+        style={{ height: "100%", width: "100%" }}
         zoomControl={false} // optional: to make room for our custom controls if desired
       >
         <TileLayer

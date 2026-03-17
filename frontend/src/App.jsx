@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import AuthModal from './components/AuthModal';
 import LanguageToggle from './components/LanguageToggle';
@@ -17,43 +18,47 @@ import DashboardLayout from './components/DashboardLayout';
 // Admin Pages
 import DataAnalyticsDashboard from './AdminSection/DataAnalyticsDashboard';
 import HandleDealer from './AdminSection/HandleDealer';
+import HandleComplaints from './AdminSection/HandleComplaints';
+import AdminOrders from './AdminSection/AdminOrders';
 import AdminProfile from './AdminSection/Profile';
 
 // Dealer Pages
-import DealerAnalyticsDashboard from './DealerSection/AnalyticsDashboard';
 import ComplaintManagement from './DealerSection/ComplaintManagement';
 import DealerProducts from './DealerSection/Products';
 import PrivateDealerProfile from './DealerSection/Profile';
+import DealerOrders from './DealerSection/Orders';
 
 // Farmer Pages
 import FarmerComplaintAndFraud from './FarmerSection/ComplaintAndFraud';
 import FarmerDealerSearch from './FarmerSection/DealerSearch';
-import ProductVerification from './FarmerSection/ProductVerification';
 import FarmerProfile from './FarmerSection/Profile';
+import FarmerOrders from './FarmerSection/Orders';
 
 export default function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const { user } = useAuth();
 
   return (
     <>
-      <Toaster position="top-right" toastOptions={{ duration: 3500 }} />
-
+      <Toaster position="top-right" containerStyle={{ zIndex: 99999, top: 70 }} toastOptions={{ duration: 2000 }} />
       <Routes>
         {/* Public Routes - Keep original Navbar layout here if desired, or let them manage their own */}
         <Route path="/" element={
-          <>
-            <Navbar onLoginClick={() => setIsAuthModalOpen(true)} />
-            <div className="flex justify-end px-6 py-1.5 bg-[hsl(220,16%,12%)] border-b border-[hsl(220,14%,20%)]">
-              <LanguageToggle />
-            </div>
-            <Home />
-          </>
+          user ? <Navigate to={`/${user.role}`} replace /> : (
+            <>
+              <Navbar onLoginClick={() => setIsAuthModalOpen(true)} />
+              <div className="flex justify-end px-6 py-1.5 bg-brand-surface border-b border-brand-subtle">
+                <LanguageToggle />
+              </div>
+              <Home />
+            </>
+          )
         } />
         
         <Route path="/dealers" element={
           <>
             <Navbar onLoginClick={() => setIsAuthModalOpen(true)} />
-            <div className="flex justify-end px-6 py-1.5 bg-[hsl(220,16%,12%)] border-b border-[hsl(220,14%,20%)]">
+            <div className="flex justify-end px-6 py-1.5 bg-brand-surface border-b border-brand-subtle">
               <LanguageToggle />
             </div>
             <DealerSearch />
@@ -63,7 +68,7 @@ export default function App() {
         <Route path="/dealers/:id" element={
           <>
             <Navbar onLoginClick={() => setIsAuthModalOpen(true)} />
-            <div className="flex justify-end px-6 py-1.5 bg-[hsl(220,16%,12%)] border-b border-[hsl(220,14%,20%)]">
+            <div className="flex justify-end px-6 py-1.5 bg-brand-surface border-b border-brand-subtle">
               <LanguageToggle />
             </div>
             <DealerProfile />
@@ -73,7 +78,7 @@ export default function App() {
         <Route path="/products" element={
           <>
             <Navbar onLoginClick={() => setIsAuthModalOpen(true)} />
-            <div className="flex justify-end px-6 py-1.5 bg-[hsl(220,16%,12%)] border-b border-[hsl(220,14%,20%)]">
+            <div className="flex justify-end px-6 py-1.5 bg-brand-surface border-b border-brand-subtle">
               <LanguageToggle />
             </div>
             <ProductSearch />
@@ -83,7 +88,7 @@ export default function App() {
         <Route path="/report" element={
           <>
             <Navbar onLoginClick={() => setIsAuthModalOpen(true)} />
-            <div className="flex justify-end px-6 py-1.5 bg-[hsl(220,16%,12%)] border-b border-[hsl(220,14%,20%)]">
+            <div className="flex justify-end px-6 py-1.5 bg-brand-surface border-b border-brand-subtle">
               <LanguageToggle />
             </div>
             <ReportFiling />
@@ -95,13 +100,15 @@ export default function App() {
           <Route index element={<Navigate to="profile" replace />} />
           <Route path="analytics" element={<DataAnalyticsDashboard />} />
           <Route path="dealers" element={<HandleDealer />} />
+          <Route path="complaints" element={<HandleComplaints />} />
+          <Route path="orders" element={<AdminOrders />} />
           <Route path="profile" element={<AdminProfile />} />
         </Route>
 
         <Route path="/dealer" element={<DashboardLayout allowedRoles={['dealer']} />}>
           <Route index element={<Navigate to="profile" replace />} />
-          <Route path="dashboard" element={<DealerAnalyticsDashboard />} />
           <Route path="products" element={<DealerProducts />} />
+          <Route path="orders" element={<DealerOrders />} />
           <Route path="complaints" element={<ComplaintManagement />} />
           <Route path="profile" element={<PrivateDealerProfile />} />
         </Route>
@@ -109,7 +116,7 @@ export default function App() {
         <Route path="/farmer" element={<DashboardLayout allowedRoles={['farmer', 'user']} />}>
           <Route index element={<Navigate to="profile" replace />} />
           <Route path="dealers" element={<FarmerDealerSearch />} />
-          <Route path="verify" element={<ProductVerification />} />
+          <Route path="orders" element={<FarmerOrders />} />
           <Route path="complaint" element={<FarmerComplaintAndFraud />} />
           <Route path="profile" element={<FarmerProfile />} />
         </Route>

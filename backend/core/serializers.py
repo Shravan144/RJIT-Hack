@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Dealer, AgriProduct, DealerProduct, Report, Review, District
+from .models import Dealer, AgriProduct, DealerProduct, Report, Review, District, Order, OrderItem
 
 
 class DistrictSerializer(serializers.ModelSerializer):
@@ -17,6 +17,7 @@ class DealerListSerializer(serializers.ModelSerializer):
             'id', 'name', 'shop_name', 'license_number', 'license_status',
             'address', 'district_name', 'latitude', 'longitude',
             'phone', 'trust_score', 'total_reports', 'specializations',
+            'is_approved', 'is_flagged',
         ]
 
 
@@ -73,3 +74,22 @@ class ReportSerializer(serializers.ModelSerializer):
             'admin_notes', 'created_at', 'updated_at',
         ]
         read_only_fields = ['id', 'reporter_name', 'dealer_name', 'product_name', 'status', 'admin_notes', 'created_at', 'updated_at']
+
+class OrderItemSerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source='product.name', read_only=True)
+    
+    class Meta:
+        model = OrderItem
+        fields = ['id', 'product', 'product_name', 'quantity', 'price_at_time']
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    items = OrderItemSerializer(many=True, read_only=True)
+    farmer_name = serializers.CharField(source='farmer.username', read_only=True)
+    dealer_name = serializers.CharField(source='dealer.shop_name', read_only=True)
+
+    class Meta:
+        model = Order
+        fields = ['id', 'farmer', 'farmer_name', 'dealer', 'dealer_name', 'total_amount', 'status', 'created_at', 'updated_at', 'items']
+        read_only_fields = ['id', 'farmer_name', 'dealer_name', 'created_at', 'updated_at']
+

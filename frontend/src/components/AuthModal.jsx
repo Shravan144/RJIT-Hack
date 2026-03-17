@@ -21,12 +21,12 @@ export default function AuthModal({ isOpen, onClose }) {
     try {
       if (mode === 'login') {
         const userData = await login(form.username, form.password);
-        toast.success(t('auth.welcomeBack', { username: form.username }));
+        toast.success(t('auth.welcomeBack', { username: form.username }), { duration: 2000, position: 'top-right' });
         onClose();
         navigate(`/${userData?.role || 'farmer'}`);
       } else {
         const userData = await register({ username: form.username, password: form.password, email: form.email, role: form.role });
-        toast.success(t('auth.accountCreated'));
+        toast.success(t('auth.accountCreated'), { duration: 2000, position: 'top-right' });
         onClose();
         navigate(`/${userData?.role || 'farmer'}`);
       }
@@ -38,7 +38,7 @@ export default function AuthModal({ isOpen, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div className="relative w-full max-w-sm bg-brand-surface border border-brand-border rounded-2xl p-7 shadow-2xl animate-fade-down">
         <button 
           onClick={onClose}
