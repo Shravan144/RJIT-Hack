@@ -27,6 +27,12 @@ class BaseDataMixin:
             password='secret123',
             role='dealer',
         )
+        self.inspector = User.objects.create_user(
+            username='inspector1',
+            email='inspector1@example.com',
+            password='secret123',
+            role='inspector',
+        )
         self.farmer1 = User.objects.create_user(
             username='farmer1',
             email='farmer1@example.com',
@@ -77,6 +83,12 @@ class ReportVisibilityTests(BaseDataMixin, APITestCase):
 
     def test_admin_sees_all_reports(self):
         self.client.force_authenticate(user=self.admin)
+        response = self.client.get('/api/reports/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 2)
+
+    def test_inspector_sees_all_reports(self):
+        self.client.force_authenticate(user=self.inspector)
         response = self.client.get('/api/reports/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['count'], 2)
@@ -176,6 +188,18 @@ class ReportStatusTransitionTests(BaseDataMixin, APITestCase):
         self.assertEqual(dismiss.status_code, status.HTTP_200_OK)
         self.dealer.refresh_from_db()
         self.assertEqual(self.dealer.verified_reports, 0)
+
+    def test_inspector_can_update_report_status(self):
+        self.client.force_authenticate(user=self.inspector)
+
+        response = self.client.patch(
+            f'/api/reports/{self.report.id}/update_status/',
+            {'status': 'under_review', 'admin_notes': 'Inspector started review.'},
+            format='json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.report.refresh_from_db()
+        self.assertEqual(self.report.status, 'under_review')
 
 
 class ReportValidationTests(BaseDataMixin, APITestCase):

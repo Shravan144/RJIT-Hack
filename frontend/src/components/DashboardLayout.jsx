@@ -19,6 +19,7 @@ export default function DashboardLayout({ allowedRoles }) {
   }
 
   const userRole = user?.role || 'user';
+  const roleBadgeText = userRole === 'inspector' ? 'Inspector Desk' : 'Admin Central';
 
   if (!user || !allowedRoles.includes(userRole)) {
     return <Navigate to="/" replace state={{ from: location }} />;
@@ -33,7 +34,7 @@ export default function DashboardLayout({ allowedRoles }) {
           </div>
           <div className="leading-tight">
              <span className="font-display font-bold text-xl text-brand-base tracking-tight">AgriVerify</span>
-             <p className="text-[9px] uppercase font-bold tracking-[0.2em] text-emerald-600 mt-0.5">Admin Central</p>
+             <p className="text-[9px] uppercase font-bold tracking-[0.2em] text-emerald-600 mt-0.5">{roleBadgeText}</p>
           </div>
         </Link>
         <div className="flex items-center gap-4">

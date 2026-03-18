@@ -24,13 +24,13 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def validate_role(self, value):
         # Public registration must not create elevated accounts.
-        if value in {'admin', 'inspector'}:
+        if value in {'admin'}:
             return 'farmer'
         return value
 
     def create(self, validated_data):
         role = validated_data.get('role', 'farmer')
-        if role not in {'farmer', 'dealer'}:
+        if role not in {'farmer', 'dealer', 'inspector'}:
             role = 'farmer'
             
         user = User.objects.create_user(

@@ -61,6 +61,16 @@ class DealerPermission(permissions.BasePermission):
         return False
 
 
+class AdminOrInspectorPermission(permissions.BasePermission):
+    def has_permission(self, request, view):
+        user = request.user
+        return bool(
+            user
+            and user.is_authenticated
+            and (user.is_staff or getattr(user, 'role', '') in {'admin', 'inspector'})
+        )
+
+
 class DistrictViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = District.objects.all()
     serializer_class = DistrictSerializer
@@ -197,7 +207,7 @@ class DealerViewSet(viewsets.ModelViewSet):
         dealer.save(update_fields=['is_approved', 'license_status'])
         return success_response(f'{dealer.shop_name} has been rejected.')
 
-    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAdminUser])
+    @action(detail=True, methods=['post'], permission_classes=[AdminOrInspectorPermission])
     def flag(self, request, pk=None):
         dealer = self.get_object()
         dealer.is_flagged = not dealer.is_flagged
@@ -210,7 +220,7 @@ class DealerViewSet(viewsets.ModelViewSet):
             data={'is_flagged': dealer.is_flagged},
         )
 
-    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAdminUser])
+    @action(detail=False, methods=['get'], permission_classes=[AdminOrInspectorPermission])
     def admin_stats(self, request):
         total = Dealer.objects.count()
         approved = Dealer.objects.filter(is_approved=True).count()
@@ -261,7 +271,9 @@ class ReportViewSet(viewsets.ModelViewSet):
         if self.action in ['create']:
             return [permissions.AllowAny()]
         if self.action in ['update', 'partial_update', 'destroy']:
-            return [permissions.IsAdminUser()]
+            return [AdminOrInspectorPermission()]
+        if self.action in ['update_status']:
+            return [AdminOrInspectorPermission()]
         return [permissions.IsAuthenticated()]
 
     def get_queryset(self):
@@ -269,7 +281,7 @@ class ReportViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if not user.is_authenticated:
             return qs.none()
-        if user.is_staff or getattr(user, 'role', '') == 'admin':
+        if user.is_staff or getattr(user, 'role', '') in {'admin', 'inspector'}:
             return qs
         if getattr(user, 'role', '') == 'dealer':
             return qs.filter(dealer__user=user)
@@ -279,7 +291,7 @@ class ReportViewSet(viewsets.ModelViewSet):
         reporter = self.request.user if self.request.user.is_authenticated else None
         serializer.save(reporter=reporter)
 
-    @action(detail=True, methods=['patch'], permission_classes=[permissions.IsAdminUser])
+    @action(detail=True, methods=['patch'], permission_classes=[AdminOrInspectorPermission])
     def update_status(self, request, pk=None):
         report = self.get_object()
         previous_status = report.status

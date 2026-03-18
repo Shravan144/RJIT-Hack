@@ -92,3 +92,16 @@ class RegistrationSecurityTests(APITestCase):
         dealer = Dealer.objects.get(user=user)
         self.assertTrue(dealer.is_approved)
         self.assertEqual(dealer.license_status, 'active')
+
+    def test_inspector_registration_keeps_inspector_role(self):
+        payload = {
+            'username': 'inspector1',
+            'email': 'inspector1@example.com',
+            'password': 'secret123',
+            'role': 'inspector',
+        }
+        response = self.client.post('/api/users/register/', payload, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        user = User.objects.get(email='inspector1@example.com')
+        self.assertEqual(user.role, 'inspector')

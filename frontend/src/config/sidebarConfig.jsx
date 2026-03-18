@@ -82,5 +82,17 @@ export const sidebarConfig = {
       path: '/farmer/complaint',
       icon: <AlertTriangle size={20} />
     }
+  ],
+  inspector: [
+    {
+      label: 'Profile',
+      path: '/inspector/profile',
+      icon: <UserCircle size={20} />
+    },
+    {
+      label: 'Complaints',
+      path: '/inspector/complaints',
+      icon: <AlertTriangle size={20} />
+    }
   ]
 };

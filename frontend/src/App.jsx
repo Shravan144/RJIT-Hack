@@ -123,6 +123,12 @@ export default function App() {
           <Route path="profile" element={<FarmerProfile />} />
         </Route>
 
+        <Route path="/inspector" element={<DashboardLayout allowedRoles={['inspector']} />}>
+          <Route index element={<Navigate to="complaints" replace />} />
+          <Route path="complaints" element={<HandleComplaints />} />
+          <Route path="profile" element={<AdminProfile />} />
+        </Route>
+
         <Route path="*" element={
           <>
             <Navbar onLoginClick={() => setIsAuthModalOpen(true)} />

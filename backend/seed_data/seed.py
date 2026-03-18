@@ -129,21 +129,25 @@ def seed():
             farmer_users.append(User.objects.get(username=uname))
     print(f"  ✓ {len(farmer_users)} farmer users")
 
-    # Reports
+    # Reports (optional): keep disabled by default so dashboard shows only real-time filed complaints.
+    include_demo_reports = os.getenv('SEED_INCLUDE_REPORTS', '').lower() in {'1', 'true', 'yes'}
     report_count = 0
-    for _ in range(20):
-        dealer = random.choice(dealer_objs)
-        reporter = random.choice(farmer_users + [None])
-        Report.objects.create(
-            reporter=reporter,
-            dealer=dealer,
-            product=random.choice(product_objs + [None]),
-            category=random.choice(CATEGORIES_REPORT),
-            description=fake.paragraph(),
-            status=random.choice(['pending', 'under_review', 'verified', 'dismissed']),
-        )
-        report_count += 1
-    print(f"  ✓ {report_count} reports")
+    if include_demo_reports:
+        for _ in range(20):
+            dealer = random.choice(dealer_objs)
+            reporter = random.choice(farmer_users + [None])
+            Report.objects.create(
+                reporter=reporter,
+                dealer=dealer,
+                product=random.choice(product_objs + [None]),
+                category=random.choice(CATEGORIES_REPORT),
+                description=fake.paragraph(),
+                status=random.choice(['pending', 'under_review', 'verified', 'dismissed']),
+            )
+            report_count += 1
+        print(f"  ✓ {report_count} reports")
+    else:
+        print("  ✓ Skipped demo reports (SEED_INCLUDE_REPORTS not enabled)")
 
     # Reviews
     review_count = 0
